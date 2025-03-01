@@ -22,7 +22,7 @@ export function ApiKeyBanner() {
         <AlertDescription className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <span>
             A Google Gemini API key is required to use the AI features. 
-            You can get a free API key from Google AI Studio.
+            Without it, some functionality will be limited.
           </span>
           <Button 
             variant="outline" 

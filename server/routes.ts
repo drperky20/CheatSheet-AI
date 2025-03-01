@@ -1,4 +1,4 @@
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -22,9 +22,6 @@ import {
   enhanceContent
 } from "./ai-service";
 
-// Import Google Generative AI SDK
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
-
 // Gemini AI Service
 import {
   setGeminiApiKey,
@@ -38,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Error handling middleware for Zod validation errors
-  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
+  app.use((err: any, _req: any, res: any, next: any) => {
     if (err && typeof err.name === 'string' && err.name === 'ZodError') {
       return res.status(400).json({ message: fromZodError(err).message });
     }
@@ -182,27 +179,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Gemini API Routes
-  app.post("/api/gemini/set-api-key", ensureAuthenticated, (req, res) => {
-    // No longer allow setting API key - always use the developer's key
-    res.json({ 
-      success: true, 
-      message: "API key management is handled by the system"
-    });
+  app.post("/api/gemini/set-api-key", ensureAuthenticated, (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      setGeminiApiKey(apiKey);
+      
+      // Save the API key in the environment for persistence
+      process.env.GEMINI_API_KEY = apiKey;
+      
+      res.json({ success: true, message: "Gemini API key updated successfully" });
+    } catch (error) {
+      next(error);
+    }
   });
   
   app.get("/api/gemini/check-api-key", ensureAuthenticated, (req, res) => {
-    // Always return that the API key is set (using developer's key)
+    const apiKey = process.env.GEMINI_API_KEY;
+    
     res.json({ 
-      isSet: true,
-      provider: "Google Gemini"
-    });
-  });
-  
-  app.post("/api/gemini/test-api-key", ensureAuthenticated, (req, res) => {
-    // Always return success as we're using the developer's key
-    res.json({ 
-      success: true, 
-      message: "API key is managed by the system" 
+      isSet: !!apiKey,
+      provider: apiKey ? "Google Gemini" : null
     });
   });
   
@@ -224,53 +224,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/gemini/generate-draft", ensureAuthenticated, async (req, res, next) => {
     try {
-      // More flexible schema that handles different data types
       const schema = z.object({
         analysisResult: z.object({
           assignmentType: z.string(),
-          topics: z.array(z.string()).or(z.string().transform(val => [val])),
-          requirements: z.array(z.string()).or(z.string().transform(val => [val])),
-          suggestedApproach: z.string().or(z.array(z.string()).transform(steps => steps.join('\n'))),
-          externalLinks: z.array(z.string()).or(z.string().transform(val => [val])),
+          topics: z.array(z.string()),
+          requirements: z.array(z.string()),
+          suggestedApproach: z.string(),
+          externalLinks: z.array(z.string()),
           customPrompt: z.string()
         }),
         additionalInstructions: z.string().optional()
       });
       
-      // Try to parse with the flexible schema
-      let analysisResult, additionalInstructions;
-      try {
-        ({ analysisResult, additionalInstructions } = schema.parse(req.body));
-      } catch (parseError) {
-        // Log the error and format of the received data for debugging
-        console.error("Error parsing generate-draft payload:", parseError);
-        console.error("Received analysisResult structure:", 
-          JSON.stringify(req.body.analysisResult, null, 2));
-        
-        // Try to fix the data format if possible
-        if (req.body.analysisResult) {
-          analysisResult = {
-            assignmentType: req.body.analysisResult.assignmentType || "General",
-            topics: Array.isArray(req.body.analysisResult.topics) 
-              ? req.body.analysisResult.topics 
-              : [req.body.analysisResult.topics || ""],
-            requirements: Array.isArray(req.body.analysisResult.requirements) 
-              ? req.body.analysisResult.requirements 
-              : [req.body.analysisResult.requirements || ""],
-            suggestedApproach: Array.isArray(req.body.analysisResult.suggestedApproach)
-              ? req.body.analysisResult.suggestedApproach.join('\n')
-              : req.body.analysisResult.suggestedApproach || "",
-            externalLinks: Array.isArray(req.body.analysisResult.externalLinks)
-              ? req.body.analysisResult.externalLinks
-              : [req.body.analysisResult.externalLinks || ""],
-            customPrompt: req.body.analysisResult.customPrompt || ""
-          };
-          additionalInstructions = req.body.additionalInstructions;
-        } else {
-          throw parseError;
-        }
-      }
-      
+      const { analysisResult, additionalInstructions } = schema.parse(req.body);
       const result = await generateDraftWithGemini(analysisResult, additionalInstructions);
       
       res.json(result);
@@ -301,7 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Middleware to ensure user is authenticated
-function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
+function ensureAuthenticated(req: any, res: any, next: any) {
   if (req.isAuthenticated()) {
     return next();
   }

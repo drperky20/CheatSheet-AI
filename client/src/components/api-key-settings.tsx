@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { checkGeminiApiKey, setGeminiApiKey, testGeminiApiKey } from '@/lib/ai-service';
+import { checkGeminiApiKey, setGeminiApiKey } from '@/lib/ai-service';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, Check, KeyRound, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,51 +74,9 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
     }
   });
   
-  // API key test mutation
-  const testApiKeyMutation = useMutation({
-    mutationFn: async (apiKey: string) => {
-      const result = await testGeminiApiKey(apiKey);
-      
-      if (!result.success) {
-        throw new Error(result.message || 'API key validation failed');
-      }
-      
-      return result;
-    },
-    onSuccess: () => {
-      toast({
-        title: 'API key validated',
-        description: 'Your Gemini API key is valid.',
-        variant: 'default',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Invalid API key',
-        description: error instanceof Error ? error.message : 'Your API key could not be validated.',
-        variant: 'destructive',
-      });
-    }
-  });
-  
   // Handle form submission
   const onSubmit = (values: ApiKeyFormValues) => {
     setApiKeyMutation.mutate(values.apiKey);
-  };
-  
-  // Test API key
-  const onTestApiKey = () => {
-    const apiKey = form.getValues('apiKey');
-    if (!apiKey) {
-      toast({
-        title: 'API key required',
-        description: 'Please enter an API key to test.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    testApiKeyMutation.mutate(apiKey);
   };
   
   return (
@@ -207,38 +165,23 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
                   )}
                 />
                 
-                <DialogFooter className="flex flex-col sm:flex-row gap-2">
-                  <div className="order-1 sm:order-none">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => onOpenChange(false)}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      type="button" 
-                      variant="secondary"
-                      onClick={onTestApiKey}
-                      disabled={testApiKeyMutation.isPending}
-                    >
-                      {testApiKeyMutation.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Test API Key
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={setApiKeyMutation.isPending}
-                    >
-                      {setApiKeyMutation.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save API Key
-                    </Button>
-                  </div>
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={setApiKeyMutation.isPending}
+                  >
+                    {setApiKeyMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save API Key
+                  </Button>
                 </DialogFooter>
               </form>
             </Form>

@@ -128,14 +128,8 @@ export default function AssignmentDetailPage() {
       analysisResult: Awaited<ReturnType<typeof analyzeAssignment>>;
       externalContent?: string;
     }) => {
-      const { analysisResult } = params;
-      
-      // Use the additional instructions if external content is available
-      const additionalInstructions = params.externalContent 
-        ? `Use this additional content for context: ${params.externalContent}`
-        : undefined;
-        
-      return await generateDraft(analysisResult, additionalInstructions);
+      const { details, analysisResult, externalContent } = params;
+      return await generateDraft(details, analysisResult, externalContent);
     },
     onSuccess: (data) => {
       setEditorContent(data.content);
