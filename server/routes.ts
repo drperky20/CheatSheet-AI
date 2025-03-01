@@ -201,11 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   app.get("/api/gemini/check-api-key", ensureAuthenticated, (req, res) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    
+    // Always return that the API key is set (using developer's key)
     res.json({ 
-      isSet: !!apiKey,
-      provider: apiKey ? "Google Gemini" : null
+      isSet: true,
+      provider: "Google Gemini"
     });
   });
   

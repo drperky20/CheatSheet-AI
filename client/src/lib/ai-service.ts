@@ -24,19 +24,11 @@ interface ApiKeyTestResult {
 }
 
 export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
-  const response = await fetch('/api/gemini/check-api-key', {
-    method: 'GET',
-    credentials: 'include',
-  });
-  
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Authentication required');
-    }
-    throw new Error('Failed to check API key status');
-  }
-  
-  return response.json();
+  // Always return that the API key is set (since we're using the developer's key)
+  return {
+    isSet: true,
+    provider: "Google Gemini"
+  };
 }
 
 export async function testGeminiApiKey(apiKey: string): Promise<ApiKeyTestResult> {
