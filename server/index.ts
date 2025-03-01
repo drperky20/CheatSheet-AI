@@ -59,9 +59,11 @@ app.use((req, res, next) => {
   // Use PORT environment variable or default to 5000
   // this serves both the API and the client
   const port = process.env.PORT || 5000;
+  const host = "0.0.0.0"; // Ensure we bind to all network interfaces
+  
   server.listen({
     port,
-    host: "0.0.0.0",
+    host,
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
