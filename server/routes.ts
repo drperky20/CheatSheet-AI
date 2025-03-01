@@ -288,7 +288,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           assignmentType: z.string(),
           topics: z.array(z.string()),
           requirements: z.array(z.string()),
-          suggestedApproach: z.string(),
+          // Make suggestedApproach more flexible to handle both string and array responses
+          suggestedApproach: z.union([
+            z.string(),
+            z.array(z.string()).transform(steps => steps.join("\n\n"))
+          ]),
           externalLinks: z.array(z.string()),
           customPrompt: z.string()
         }),
@@ -296,10 +300,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const { analysisResult, additionalInstructions } = schema.parse(req.body);
+      
+      // Ensure suggestedApproach is always a string at this point
+      if (typeof analysisResult.suggestedApproach !== 'string') {
+        analysisResult.suggestedApproach = Array.isArray(analysisResult.suggestedApproach) 
+          ? analysisResult.suggestedApproach.join("\n\n")
+          : String(analysisResult.suggestedApproach);
+      }
+      
       const result = await generateDraftWithGemini(analysisResult, additionalInstructions);
       
       res.json(result);
     } catch (error) {
+      console.error("Draft generation error:", error);
       next(error);
     }
   });

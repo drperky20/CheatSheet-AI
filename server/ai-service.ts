@@ -6,7 +6,8 @@ export interface AnalysisResult {
   assignmentType: string;
   topics: string[];
   requirements: string[];
-  suggestedApproach: string;
+  // Make suggestedApproach more flexible to handle both string and array responses
+  suggestedApproach: string | string[];
   externalLinks: string[];
   customPrompt: string;
 }
@@ -385,7 +386,13 @@ function generateProgrammingAssignmentDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create a simple implementation strategy based on suggested approach
-  const implementationStrategy = suggestedApproach.split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
+  let approachText = '';
+  if (Array.isArray(suggestedApproach)) {
+    approachText = suggestedApproach.join('\n');
+  } else {
+    approachText = suggestedApproach;
+  }
+  const implementationStrategy = approachText.split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
   
   return `# ${title}
 
