@@ -340,31 +340,46 @@ function generateProgrammingAssignmentDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): string {
-  return `# Python Mathematical Functions Assignment
+  // Extract relevant information from the analysis
+  const { topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Create a dynamic programming assignment draft based on actual content
+  const title = topics.length > 0 ? topics[0] : "Programming Assignment";
+  
+  // Build requirements section from the actual requirements
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  // Create a simple implementation strategy based on suggested approach
+  const implementationStrategy = suggestedApproach.split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
+  
+  return `# ${title}
 
-## Introduction
-This program implements three mathematical functions as required: calculating the area of a circle, calculating compound interest, and calculating the distance between two points.
+## Assignment Overview
+${context.substring(0, 200)}...
 
-## Implementation Summary
+## Requirements
+${requirementsList}
 
-The implementation includes three main functions:
+## Implementation Strategy
+${implementationStrategy}
 
-1. **calculate_circle_area(radius)**: Calculates the area of a circle using πr²
-2. **calculate_compound_interest(principal, rate, time, compounds_per_year)**: Calculates compound interest using A = P(1 + r/n)^(nt)
-3. **calculate_distance(point1, point2)**: Calculates Euclidean distance between points using √[(x₂-x₁)² + (y₂-y₁)²]
-
-Each function includes proper error handling, parameter validation, and comprehensive documentation.
-
-## Test Results
-
-Test results show correct calculations for various inputs:
-- Circle area calculations are accurate for different radii
-- Compound interest calculations match expected values for different time periods and compounding frequencies
-- Distance calculations correctly measure the space between given coordinate points
+## Implementation Plan
+1. Understand the problem requirements completely
+2. Design the solution architecture using appropriate programming patterns
+3. Implement the core functionality with robust error handling
+4. Create comprehensive tests to verify correctness
+5. Document the code and solution approach
 
 ## Conclusion
+This implementation plan addresses all the specified requirements while ensuring code quality, maintainability, and performance.
 
-The implementation successfully meets all the requirements specified in the assignment. The code is well-documented, properly validated, and thoroughly tested to ensure reliability across various use cases.
+## Notes
+${customPrompt}
 `;
 }
 
@@ -374,66 +389,55 @@ function generateWritingAssignmentDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): string {
-  return `# The Evolution of Machine Learning: Past, Present, and Future
+  // Extract relevant information from the analysis
+  const { topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Create a dynamic writing assignment draft based on actual content
+  const title = topics.length > 0 ? topics[0] : "Writing Assignment";
+  
+  // Build requirements section from the actual requirements
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  // Create an outline based on the suggested approach
+  const outlineSections = suggestedApproach.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  
+  const formattedOutline = outlineSections.map(section => {
+    // Check if it's a main section or subsection
+    if (section.startsWith('- ')) {
+      return `### ${section.substring(2)}`;
+    } else {
+      return `## ${section}`;
+    }
+  }).join('\n\n');
+  
+  return `# ${title}
 
-## Introduction
+## Assignment Overview
+${context.substring(0, 300)}...
 
-Machine Learning (ML) has evolved from a theoretical concept to a transformative technology that influences virtually every aspect of modern life. This essay examines the historical development of machine learning, its current applications, and its potential future trajectory. By tracing this evolution, we can better understand both the remarkable progress that has been made and the significant challenges that lie ahead.
+## Requirements
+${requirementsList}
 
-## The Origins of Machine Learning
+## Outline
+${formattedOutline}
 
-The conceptual foundations of machine learning date back to the mid-20th century, when pioneers like Alan Turing and Arthur Samuel began exploring the possibility of machines that could learn from experience. Samuel, an IBM researcher, coined the term "machine learning" in 1959 while developing a program that could play checkers and improve through experience. These early efforts, while primitive by today's standards, established the fundamental principle that computers could be programmed to learn without being explicitly programmed for every task.
+## Writing Approach
+1. Conduct thorough research on the topic using credible sources
+2. Develop a clear thesis statement that addresses the main requirements
+3. Structure the essay with a logical flow of ideas
+4. Support arguments with evidence and examples
+5. Conclude with meaningful insights and implications
 
-The field progressed through several key paradigm shifts:
-
-1. **Rule-based systems (1950s-1970s)**: Early AI relied on hard-coded rules and logic.
-2. **Statistical approaches (1980s-1990s)**: Researchers began incorporating probability and statistics.
-3. **Neural network renaissance (2000s-present)**: Deep learning revolutionized the field with unprecedented capabilities.
-
-## Current Applications and Capabilities
-
-Today, machine learning has permeated countless domains:
-
-### Healthcare
-Machine learning algorithms can detect diseases from medical images with accuracy rivaling human specialists. Systems can predict patient outcomes, optimize treatment plans, and even discover new medications through complex pattern analysis of molecular data.
-
-### Transportation
-Self-driving vehicles represent one of the most visible applications of machine learning. Computer vision systems interpret complex road environments while predictive algorithms navigate changing conditions in real-time.
-
-### Communication
-Natural language processing has enabled sophisticated translation services, voice assistants, and content recommendation systems that personalize information delivery based on user behavior patterns.
-
-### Business Operations
-From predictive maintenance in manufacturing to fraud detection in finance, machine learning has transformed operational efficiency across industries.
-
-## Challenges and Ethical Considerations
-
-Despite its remarkable capabilities, machine learning faces significant challenges:
-
-1. **Bias and fairness**: ML systems can perpetuate or amplify societal biases present in training data.
-2. **Transparency**: The "black box" nature of complex algorithms makes accountability difficult.
-3. **Privacy concerns**: Data collection necessary for ML raises serious questions about personal privacy.
-4. **Environmental impact**: Training large models requires substantial computing resources and energy.
-
-## The Future Landscape
-
-Looking ahead, several promising directions are emerging:
-
-### Multimodal Learning
-Future systems will seamlessly integrate multiple types of data—text, images, audio, and sensor readings—to develop more comprehensive understanding.
-
-### Federated Learning
-Privacy-preserving techniques will enable learning across distributed datasets without centralizing sensitive information.
-
-### Neuromorphic Computing
-Hardware designed to mimic neural structures may dramatically improve efficiency and enable new capabilities.
-
-### Human-AI Collaboration
-Rather than replacement, the most productive future may lie in complementary systems where humans and AI each contribute their unique strengths.
-
-## Conclusion
-
-The evolution of machine learning represents one of humanity's most significant technological achievements. From theoretical beginnings to ubiquitous application, ML has transformed how we approach complex problems. As we navigate future developments, thoughtful consideration of ethical implications and intentional design choices will be essential to ensure these powerful tools benefit humanity broadly. The next chapter in machine learning will not be written by algorithms alone, but through the careful guidance of human values and priorities.`;
+## Notes
+${customPrompt}
+`;
 }
 
 // Helper function to generate research assignment draft
@@ -442,100 +446,71 @@ function generateResearchAssignmentDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): string {
-  return `# Climate Change Adaptation Strategies: A Comparative Analysis
+  // Extract relevant information from the analysis
+  const { topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Create a dynamic research assignment draft based on actual content
+  const title = topics.length > 0 ? topics[0] : "Research Paper";
+  
+  // Build requirements section from the actual requirements
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  // Create research sections from the suggested approach
+  const researchSections = suggestedApproach.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  
+  // Format the research sections with proper numbering and hierarchy
+  let sectionNumber = 1;
+  const formattedSections = researchSections.map(section => {
+    if (section.startsWith('- ')) {
+      // This is a subsection
+      return `### ${sectionNumber-1}.${section.substring(2).trim()}`;
+    } else {
+      // This is a main section
+      return `## ${sectionNumber++}. ${section}`;
+    }
+  }).join('\n\n');
+  
+  return `# ${title}
 
 ## Abstract
 
-This research paper examines climate change adaptation strategies across different geographical and economic contexts. Through analysis of case studies from coastal cities, agricultural regions, and urban centers, the study identifies key factors that influence adaptation effectiveness. Findings indicate that successful adaptation requires integration of traditional knowledge with scientific data, robust community participation, and flexible governance structures. The research concludes with recommendations for policymakers seeking to enhance climate resilience in diverse settings.
+This research paper will examine ${title.toLowerCase()} through a systematic investigation of the topic, incorporating analysis of relevant data and literature. The research aims to address key questions about ${topics.join(', ')} and provide insights on their implications.
 
-## 1. Introduction
+## Assignment Overview
+${context.substring(0, 300)}...
 
-Climate change presents one of the most significant challenges of the 21st century, with impacts already manifesting through increased temperature extremes, changing precipitation patterns, and more frequent severe weather events. While mitigation efforts to reduce greenhouse gas emissions remain critical, adaptation strategies have become equally important as communities worldwide confront unavoidable climate impacts.
+## Research Requirements
+${requirementsList}
 
-This research addresses three key questions:
-1. How do adaptation strategies differ across geographical and economic contexts?
-2. What factors determine the effectiveness of climate adaptation initiatives?
-3. What best practices can be identified for future adaptation planning?
+${formattedSections}
 
-## 2. Methodology
+## Methodology
 
-This study employed a mixed-methods approach combining:
+This research will employ a mixed-methods approach combining:
 
-- **Literature review**: Analysis of 45 peer-reviewed studies on climate adaptation published between 2010-2023
-- **Case study analysis**: Detailed examination of adaptation initiatives in 6 regions representing diverse contexts
-- **Expert interviews**: Structured discussions with 12 climate policy specialists and implementation practitioners
-- **Quantitative assessment**: Evaluation of adaptation outcomes using standardized resilience metrics
+- Literature review of relevant scholarly sources
+- Data analysis from primary and secondary sources
+- Comparative case studies
+- Synthesis of findings into actionable recommendations
 
-Data was coded and analyzed using thematic analysis to identify recurring patterns and critical success factors.
+## Expected Outcomes
 
-## 3. Theoretical Framework
+This research aims to contribute to the understanding of ${topics[0]} by:
+1. Identifying key patterns and relationships
+2. Establishing a theoretical framework for analysis
+3. Providing evidence-based recommendations
+4. Opening avenues for future research
 
-This research is grounded in resilience theory, which conceptualizes adaptation as a function of exposure, sensitivity, and adaptive capacity. The framework recognizes that adaptation exists within complex socio-ecological systems where both environmental and human factors interact dynamically.
-
-The analysis draws on three theoretical perspectives:
-- Institutional adaptation theory
-- Socio-technical transitions literature
-- Community-based adaptation frameworks
-
-## 4. Case Studies
-
-### 4.1 Coastal Adaptation: Rotterdam, Netherlands vs. Semarang, Indonesia
-
-The Netherlands' comprehensive "Room for the River" program represents a wealth-enabled transformation from traditional flood control to accommodation strategies. By contrast, Semarang's adaptation efforts rely more heavily on community-based approaches and incremental improvements due to resource constraints.
-
-### 4.2 Agricultural Adaptation: California, USA vs. Maharashtra, India
-
-California's technological approach emphasizes precision irrigation and climate-resistant crop varieties, while Maharashtra demonstrates the integration of traditional knowledge with modern forecasting to manage monsoon variability.
-
-### 4.3 Urban Heat Management: Phoenix, USA vs. Medellin, Colombia
-
-These case studies reveal contrasting approaches to similar challenges, with Phoenix investing heavily in energy-intensive cooling infrastructure while Medellin prioritizes green infrastructure and passive cooling strategies.
-
-## 5. Key Findings
-
-Analysis across case studies revealed several critical factors influencing adaptation success:
-
-1. **Governance integration**: Adaptation efforts showing highest success rates incorporated climate planning across all levels of governance.
-
-2. **Knowledge diversity**: Programs that combined scientific data with local and indigenous knowledge demonstrated greater sustainability.
-
-3. **Resource accessibility**: Financial resources correlated with adaptation scope but not necessarily with effectiveness or community acceptance.
-
-4. **Adaptive management**: Flexible approaches allowing for learning and adjustment outperformed rigid implementation plans.
-
-5. **Co-benefits focus**: Strategies delivering multiple benefits beyond climate adaptation showed higher implementation rates and community support.
-
-## 6. Discussion
-
-The findings suggest that effective adaptation strategies must be contextually appropriate rather than universally applied. High-income regions often emphasize technological and infrastructure solutions, while lower-resource settings typically prioritize social adaptations and institutional flexibility.
-
-A key insight from this research is that adaptation success depends less on absolute resource availability than on:
-- Appropriateness to local conditions
-- Community ownership and participation
-- Integration with existing development priorities
-- Governance flexibility and learning capacity
-
-## 7. Recommendations for Policy and Practice
-
-Based on the comparative analysis, this research recommends:
-
-1. **Context-sensitive planning**: Tailor adaptation approaches to local environmental, economic, and social conditions.
-
-2. **Multi-stakeholder processes**: Ensure diverse participation in adaptation planning to enhance legitimacy and effectiveness.
-
-3. **Flexible financing mechanisms**: Develop funding structures that can respond to emerging needs and changing conditions.
-
-4. **Knowledge co-production**: Create platforms for exchange between scientific experts and local knowledge holders.
-
-5. **Monitoring and learning systems**: Implement robust evaluation frameworks that facilitate adaptive management.
-
-## 8. Conclusion
-
-This research demonstrates that while climate adaptation challenges vary significantly across contexts, certain principles can guide effective planning universally. Successful adaptation requires not just technical solutions but appropriate governance structures, community engagement, and learning systems. As climate impacts intensify, these insights become increasingly vital for creating resilient communities worldwide.
-
-## References
-
-[This section would contain 20-30 academic references following appropriate citation format]`;
+## Notes
+${customPrompt}
+`;
 }
 
 // Helper function to generate presentation draft
@@ -544,132 +519,86 @@ function generatePresentationDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): string {
-  return `# Renewable Energy Transitions: Challenges and Opportunities
+  // Extract relevant information from the analysis
+  const { topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Create a dynamic presentation title based on actual content
+  const title = topics.length > 0 ? topics[0] : "Presentation";
+  
+  // Build requirements section from the actual requirements
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  // Create presentation slides from the suggested approach
+  const slideTopics = suggestedApproach.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  
+  // Format the slides
+  let slideNumber = 3; // Start at 3 because we have title and overview slides
+  const formattedSlides = slideTopics.map(topic => {
+    const slideContent = `### Slide ${slideNumber++}: ${topic.startsWith('- ') ? topic.substring(2) : topic}
+**Key Points:**
+- Topic exploration
+- Supporting evidence
+- Visual elements
+- Discussion points
+
+*[Speaker notes: Focus on clear explanation of concepts and engaging delivery.]*`;
+    return slideContent;
+  }).join('\n\n');
+  
+  return `# ${title}
 ## Presentation Outline
 
 ### Slide 1: Title Slide
-**Renewable Energy Transitions: Challenges and Opportunities**
+**${title}**
 - Presenter Name
 - Date
 - Course Information
 
 ### Slide 2: Presentation Overview
 **Today's Agenda:**
-- Current global energy landscape
-- Key renewable technologies and their growth
-- Challenges to widespread adoption
-- Case studies of successful transitions
-- Policy recommendations and future outlook
-- Discussion questions
+${slideTopics.map(topic => `- ${topic.startsWith('- ') ? topic.substring(2) : topic}`).join('\n')}
 
-### Slide 3: Global Energy Landscape
-**Where We Stand Today:**
-- Global energy consumption continues to rise (~1.3% annually)
-- Fossil fuels still dominate (~80% of global energy mix)
-- Renewables growing fastest (~7.6% annual growth for non-hydro renewables)
-- Regional disparities in energy transition progress
-- Climate targets require accelerated transition
+## Assignment Overview
+${context.substring(0, 150)}...
 
-*[Speaker notes: Begin with the big picture to establish context. Include a visual graph showing energy mix trends over time.]*
+## Presentation Requirements
+${requirementsList}
 
-### Slide 4: Key Renewable Technologies
-**Leading the Transition:**
-- Solar PV: 23.7% capacity growth in 2022, costs down 89% since 2010
-- Wind: 9.6% capacity growth, both onshore and offshore expansion
-- Battery storage: Critical enabler, costs fallen 97% since 1991
-- Green hydrogen: Emerging solution for hard-to-electrify sectors
-- Geothermal and advanced biofuels: Stable baseload alternatives
+${formattedSlides}
 
-*[Speaker notes: Highlight how cost curves have dramatically changed the competitive landscape. Include LCOE comparisons.]*
-
-### Slide 5: Adoption Challenges - Technical
-**Technical Barriers:**
-- Intermittency and grid integration issues
-- Storage limitations at grid scale
-- Transmission infrastructure deficits
-- Material constraints for manufacturing
-- Technological readiness varies by sector
-
-*[Speaker notes: Emphasize that these are solvable problems but require coordinated investment and planning.]*
-
-### Slide 6: Adoption Challenges - Economic & Social
-**Beyond Technology:**
-- Stranded asset risks in fossil fuel infrastructure
-- Job transitions in energy-dependent communities
-- Upfront capital requirements despite lower lifetime costs
-- Split incentives between developers and beneficiaries
-- Energy justice and equitable access concerns
-
-*[Speaker notes: This is where many transitions struggle - when technical solutions meet social realities.]*
-
-### Slide 7: Case Study - Denmark
-**Success Story: Denmark's Wind Revolution**
-- 1970s: Oil crisis sparks early investment in alternatives
-- 1980s-90s: Community ownership model drives social acceptance
-- 2000s: Offshore wind leadership established
-- Today: >50% of electricity from wind power
-- Key success factors: Policy stability, public participation, technical innovation
-
-*[Speaker notes: Emphasize the long timeline and multi-faceted approach that created success.]*
-
-### Slide 8: Case Study - Morocco
-**Emerging Market Success: Morocco's Solar Transition**
-- Noor Ouarzazate Solar Complex: Largest concentrated solar plant in world
-- Reduced energy imports by 97% since 2018
-- Created 1,600 direct jobs and thousands of indirect jobs
-- Innovative financing: public-private partnership with climate funds
-- Knowledge transfer priority has built domestic capacity
-
-*[Speaker notes: Demonstrates that emerging economies can lead in renewables with right frameworks.]*
-
-### Slide 9: Policy Frameworks that Work
-**Enabling the Transition:**
-- Carbon pricing mechanisms
-- Renewable portfolio standards
-- Feed-in tariffs and auction systems
-- Green finance initiatives
-- Just transition policies for affected communities
-- International cooperation frameworks
-
-*[Speaker notes: Different tools work in different contexts - no single policy solution.]*
-
-### Slide 10: Future Outlook
-**Where We're Headed:**
-- Sector coupling will accelerate (electricity, heating, transport)
-- Digitalization enabling smart demand management
-- Decentralized generation becoming mainstream
-- Circular economy for renewable hardware
-- Increasing focus on embodied carbon in manufacturing
-
-*[Speaker notes: Paint the picture of an integrated, flexible energy system - not just replacing sources.]*
-
-### Slide 11: Key Takeaways
+### Slide ${slideTopics.length + 3}: Key Takeaways
 **Remember These Points:**
-- The renewable transition is technically feasible and economically viable
-- Integration challenges require systemic thinking beyond individual technologies
-- Social and political factors often determine success more than technical factors
-- Different regions need customized pathways reflecting local conditions
-- Pace of transition must accelerate to meet climate goals
+- Main insights from the presentation
+- Critical analysis of the topic
+- Real-world applications
+- Future research directions
 
 *[Speaker notes: Emphasize actionable insights participants can apply.]*
 
-### Slide 12: Discussion Questions
+### Slide ${slideTopics.length + 4}: Discussion Questions
 **Let's Discuss:**
-- What renewable strategies make most sense for our region?
-- How can we accelerate adoption while ensuring just transitions?
-- What roles should public vs. private sectors play?
-- How might geopolitics shift in a renewable-dominated world?
-- What opportunities exist for cross-sector collaboration?
+- What aspects of ${title} do you find most interesting?
+- How can these concepts be applied in practice?
+- What challenges might arise in implementation?
+- How might future developments change our understanding?
 
 *[Speaker notes: Prepare additional prompts if discussion is slow to start.]*
 
-### Slide 13: Thank You
+### Slide ${slideTopics.length + 5}: Thank You
 **Contact Information:**
 - Email address
 - References and resources for further reading
-- QR code to presentation materials
 
-*[Speaker notes: Invite follow-up questions and connections.]*`;
+## Notes
+${customPrompt}
+`;
 }
 
 // Helper function to generate general assignment draft
@@ -678,123 +607,67 @@ function generateGeneralAssignmentDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): string {
-  return `# Analysis of Economic Impacts of Artificial Intelligence
+  // Extract relevant information from the analysis
+  const { topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Create a dynamic title based on actual content
+  const title = topics.length > 0 ? topics[0] : "Assignment Analysis";
+  
+  // Build requirements section from the actual requirements
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  // Create structured sections from the suggested approach
+  const sectionTopics = suggestedApproach.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+  
+  // Format the sections with proper numbering
+  let sectionNumber = 1;
+  const formattedSections = sectionTopics.map(section => {
+    if (section.startsWith('- ')) {
+      // This is a subsection
+      return `### ${sectionNumber-1}.${sectionNumber % 10} ${section.substring(2).trim()}
 
-## 1. Introduction
+This subsection explores key aspects of the topic in detail, providing analysis and examples.
 
-Artificial Intelligence (AI) represents one of the most transformative technologies of the 21st century, with profound implications for economic structures, labor markets, and productivity across sectors. This analysis examines the multifaceted economic impacts of AI adoption, considering both potential benefits and challenges. By evaluating current trends and projections, this paper aims to provide a balanced assessment of how AI is reshaping economic paradigms globally.
+- Important point 1 related to this subtopic
+- Important point 2 related to this subtopic
+- Supporting evidence and analysis
+- Practical implications`;
+    } else {
+      // This is a main section
+      return `## ${sectionNumber++}. ${section}
 
-## 2. Productivity and Economic Growth
+This section provides an overview of ${section.toLowerCase()}, examining its significance and relationship to the overall topic.`;
+    }
+  }).join('\n\n');
+  
+  return `# ${title}
 
-### 2.1 Automation and Efficiency Gains
+## Assignment Overview
+${context.substring(0, 200)}...
 
-AI technologies are demonstrating significant capacity to automate routine tasks and enhance operational efficiency. According to research by McKinsey, AI automation could raise global productivity growth by 0.8 to 1.4 percent annually, potentially adding $13 trillion to global economic output by 2030. These productivity gains derive from several mechanisms:
+## Requirements
+${requirementsList}
 
-- **Process optimization**: AI systems can identify inefficiencies in workflows that humans might overlook
-- **Resource allocation**: Machine learning algorithms can optimize distribution of resources in complex systems
-- **Error reduction**: AI can perform repetitive tasks with consistent precision, reducing costly mistakes
-- **24/7 operation**: Unlike human workers, AI systems can function continuously without breaks
+## Introduction
 
-In manufacturing, AI-powered predictive maintenance alone is reducing downtime by up to 50% and increasing equipment lifespan by 20-40% in early adopters. Similarly, in logistics, AI route optimization is cutting fuel costs by 15-20% while increasing delivery capacity.
+This assignment analyzes ${title.toLowerCase()} and its various dimensions. The analysis covers key aspects, implications, and considerations related to this topic. By evaluating current research and relevant factors, this work aims to provide a comprehensive assessment of the subject matter.
 
-### 2.2 Innovation Acceleration
+${formattedSections}
 
-Beyond efficiency improvements, AI is accelerating innovation across sectors:
+## Conclusion
 
-- **Drug discovery**: AI is reducing pharmaceutical research timelines from years to months
-- **Materials science**: Machine learning is facilitating discovery of novel materials with specific properties
-- **Product development**: Generative design tools are creating optimized product designs humans might never conceive
+This analysis has examined ${title.toLowerCase()} from multiple perspectives. The key findings include the importance of understanding the interrelationships between various aspects of the topic, the practical implications for relevant stakeholders, and potential future developments. With appropriate approaches and methodologies, we can develop a more nuanced understanding of this subject and its broader implications.
 
-These innovation effects could significantly boost total factor productivity, a key driver of long-term economic growth.
-
-## 3. Labor Market Transformations
-
-### 3.1 Job Displacement and Creation
-
-The impact of AI on employment generates considerable debate. Analysis suggests a nuanced reality:
-
-**Potential Displacement**: Research from Oxford Economics projects that up to 20 million manufacturing jobs could be displaced by robots alone by 2030. Jobs featuring routine cognitive and manual tasks face highest displacement risk.
-
-**Job Creation**: Simultaneously, AI is creating new job categories and increasing demand in others:
-
-- AI system developers and maintainers
-- Data scientists and analysts
-- Human-AI collaboration specialists
-- AI ethics and oversight professionals
-
-Historical technological shifts suggest net job creation over time, though this transition may create significant interim disruption.
-
-### 3.2 Wage and Inequality Effects
-
-AI adoption is demonstrating complex effects on wages and economic inequality:
-
-- **Skill premium**: Workers with AI-complementary skills are seeing wage increases
-- **Geographic concentrations**: Benefits are clustering in technology hubs and urban centers
-- **Winner-take-most dynamics**: AI enables scaling advantages that concentrate market power
-
-Without appropriate policy interventions, these effects could exacerbate existing economic disparities both within and between nations.
-
-## 4. Sectoral Impacts
-
-AI's economic effects vary significantly by sector:
-
-### 4.1 Healthcare
-
-AI applications in healthcare demonstrate potential economic benefits through:
-- Improved diagnostic accuracy reducing treatment costs
-- Administrative automation reducing overhead expenses
-- Personalized treatment protocols improving outcomes
-- Remote monitoring reducing hospitalization needs
-
-These could collectively save hundreds of billions in healthcare costs while improving outcomes.
-
-### 4.2 Transportation
-
-The transportation sector is being revolutionized by AI through:
-- Autonomous vehicle development
-- Traffic flow optimization
-- Supply chain efficiency improvements
-- Predictive maintenance reducing vehicle downtime
-
-Full autonomous vehicle adoption alone could generate economic benefits of $800 billion annually in the US through accident reduction, productivity gains, and fuel efficiency.
-
-### 4.3 Financial Services
-
-In financial services, AI is:
-- Reducing fraud through enhanced detection algorithms
-- Improving lending accuracy through superior risk assessment
-- Lowering costs through automated customer service
-- Creating new business models through personalized financial products
-
-## 5. Policy Implications
-
-The economic transformation driven by AI necessitates policy responses:
-
-### 5.1 Education and Workforce Development
-
-- Adaptation of educational curricula to develop AI-complementary skills
-- Expansion of lifelong learning opportunities for workforce adaptation
-- Public-private partnerships for skills transition programs
-
-### 5.2 Social Safety Nets and Transition Support
-
-- Modernized unemployment insurance systems
-- Potential exploration of universal basic income or similar mechanisms
-- Targeted support for communities facing disproportionate disruption
-
-### 5.3 Regulatory Frameworks
-
-- Competition policy addressing AI-driven market concentration
-- Privacy regulations balancing innovation with data protection
-- Safety standards for AI applications in critical sectors
-
-## 6. Conclusion
-
-The economic impacts of AI will be profound and multi-dimensional. While productivity and innovation gains offer substantial benefits, challenges around labor market disruption and inequality require thoughtful management. With appropriate policy responses and institutional adaptation, AI can contribute significantly to economic growth while ensuring broadly shared benefits. The key will be aligning technological development with societal needs through inclusive governance and proactive adjustment strategies.
-
-## References
-
-[This section would include 10-15 academic and industry sources]`;
+## Notes
+${customPrompt}
+`;
 }
 
 // Function to enhance content based on specific instruction
