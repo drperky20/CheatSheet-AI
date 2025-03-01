@@ -206,6 +206,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  app.post("/api/gemini/test-api-key", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      
+      // Import necessary OpenAI dependencies
+      const OpenAI = await import('openai');
+      
+      // Create temporary instance with the provided API key
+      const openai = new OpenAI.default({ 
+        baseURL: "https://api.x.ai/v1", 
+        apiKey: apiKey 
+      });
+      
+      try {
+        // Make a simple request to test the API key
+        const testPrompt = "Hello, this is a test message to verify that the API key is working.";
+        
+        const response = await openai.chat.completions.create({
+          model: "grok-beta",
+          messages: [{ role: "user", content: testPrompt }],
+          max_tokens: 10  // Just request a small response to minimize token usage
+        });
+        
+        if (response && response.choices && response.choices.length > 0) {
+          res.json({ 
+            success: true, 
+            message: "API key is valid" 
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: "Invalid API key or API response"
+          });
+        }
+      } catch (err) {
+        console.error("Error testing Gemini API key:", err);
+        let errorMessage = "Invalid API key";
+        
+        if (err instanceof Error) {
+          errorMessage = `Invalid API key: ${err.message}`;
+        }
+        
+        res.status(400).json({ 
+          success: false, 
+          message: errorMessage
+        });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   app.post("/api/gemini/analyze-assignment", ensureAuthenticated, async (req, res, next) => {
     try {
       const schema = z.object({

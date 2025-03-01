@@ -74,9 +74,65 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
     }
   });
   
+  // API key test mutation
+  const testApiKeyMutation = useMutation({
+    mutationFn: async (apiKey: string) => {
+      // This is a simple test to check if the API key works by making a simple API call
+      try {
+        const response = await fetch('/api/gemini/test-api-key', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ apiKey }),
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || 'Invalid API key');
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error testing API key:', error);
+        throw new Error('API key validation failed');
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: 'API key validated',
+        description: 'Your Gemini API key is valid.',
+        variant: 'default',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Invalid API key',
+        description: error.message || 'Your API key could not be validated.',
+        variant: 'destructive',
+      });
+    }
+  });
+  
   // Handle form submission
   const onSubmit = (values: ApiKeyFormValues) => {
     setApiKeyMutation.mutate(values.apiKey);
+  };
+  
+  // Test API key
+  const onTestApiKey = () => {
+    const apiKey = form.getValues('apiKey');
+    if (!apiKey) {
+      toast({
+        title: 'API key required',
+        description: 'Please enter an API key to test.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    testApiKeyMutation.mutate(apiKey);
   };
   
   return (
@@ -165,23 +221,38 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
                   )}
                 />
                 
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={setApiKeyMutation.isPending}
-                  >
-                    {setApiKeyMutation.isPending && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    )}
-                    Save API Key
-                  </Button>
+                <DialogFooter className="flex flex-col sm:flex-row gap-2">
+                  <div className="order-1 sm:order-none">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => onOpenChange(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      type="button" 
+                      variant="secondary"
+                      onClick={onTestApiKey}
+                      disabled={testApiKeyMutation.isPending}
+                    >
+                      {testApiKeyMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Test API Key
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={setApiKeyMutation.isPending}
+                    >
+                      {setApiKeyMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      Save API Key
+                    </Button>
+                  </div>
                 </DialogFooter>
               </form>
             </Form>

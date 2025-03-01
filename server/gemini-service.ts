@@ -3,7 +3,12 @@ import { AnalysisResult, DraftResult } from "./ai-service";
 
 // Initialize the Gemini AI client
 let apiKey: string | undefined = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey || "");
+let genAI: GoogleGenerativeAI;
+
+// Initialize client with current API key (if available)
+if (apiKey) {
+  genAI = new GoogleGenerativeAI(apiKey);
+}
 
 // Safety settings to avoid harmful content
 const safetySettings = [
@@ -28,8 +33,13 @@ const safetySettings = [
 // Configure the model
 const getModel = () => {
   if (!apiKey) {
-    throw new Error("Gemini API key is not set. Please set the GEMINI_API_KEY environment variable.");
+    throw new Error("Gemini API key is not set. Please add your Google Gemini API key in settings.");
   }
+  
+  if (!genAI) {
+    throw new Error("Gemini client not initialized. Please check your API key.");
+  }
+  
   return genAI.getGenerativeModel({ 
     model: "gemini-1.5-pro",
     safetySettings 
@@ -41,6 +51,8 @@ const getModel = () => {
  */
 export function setGeminiApiKey(key: string) {
   apiKey = key;
+  genAI = new GoogleGenerativeAI(key);
+  console.log("Gemini API client initialized with new key");
 }
 
 /**
