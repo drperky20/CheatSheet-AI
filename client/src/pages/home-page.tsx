@@ -7,6 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchCourses } from "@/lib/canvas-api";
 import { Link } from "wouter";
 import { CalendarDays, FileText, BookOpen, BarChart, ArrowRight, Settings } from "lucide-react";
+import { ApiKeyBanner } from "@/components/api-key-banner";
+import { useState } from "react";
+import { ApiKeySettings } from "@/components/api-key-settings";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -14,6 +17,7 @@ export default function HomePage() {
     queryKey: ["/api/canvas/courses"],
     queryFn: fetchCourses,
   });
+  const [showApiKeySettings, setShowApiKeySettings] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/90 to-background">
@@ -21,6 +25,8 @@ export default function HomePage() {
         <Sidebar />
         <main className="flex-1 p-6 md:p-8 pb-20 md:pb-8 overflow-auto">
           <div className="max-w-7xl mx-auto">
+            {/* API Key Banner */}
+            <ApiKeyBanner />
             <section className="mb-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
@@ -198,15 +204,22 @@ export default function HomePage() {
                 
                 <Card 
                   className="backdrop-blur-md bg-background/30 border-primary/10 cursor-pointer hover:border-primary/30 transition-all"
+                  onClick={() => setShowApiKeySettings(true)}
                 >
                   <CardContent className="p-6 flex flex-col items-center text-center">
                     <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-3">
                       <Settings className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="font-medium mb-1">Canvas Settings</h3>
-                    <p className="text-xs text-muted-foreground">Configure your Canvas account</p>
+                    <h3 className="font-medium mb-1">AI Settings</h3>
+                    <p className="text-xs text-muted-foreground">Configure your Gemini API key</p>
                   </CardContent>
                 </Card>
+                
+                {/* API Key Settings Dialog */}
+                <ApiKeySettings
+                  open={showApiKeySettings}
+                  onOpenChange={setShowApiKeySettings}
+                />
               </div>
             </section>
           </div>

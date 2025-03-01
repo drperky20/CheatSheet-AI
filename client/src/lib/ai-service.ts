@@ -24,25 +24,64 @@ interface ApiKeyTestResult {
 }
 
 export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
-  // Always return that the API key is set (since we're using the developer's key)
-  return {
-    isSet: true,
-    provider: "Google Gemini"
-  };
+  const response = await fetch('/api/gemini/check-api-key', {
+    method: 'GET',
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Authentication required');
+    }
+    throw new Error('Failed to check API key status');
+  }
+  
+  return response.json();
 }
 
 export async function testGeminiApiKey(apiKey: string): Promise<ApiKeyTestResult> {
-  // Simply return success as we're using the developer's key
-  return {
-    success: true,
-    message: "API key is managed by the system"
-  };
+  const response = await fetch('/api/gemini/test-api-key', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      apiKey
+    }),
+    credentials: 'include',
+  });
+  
+  const result = await response.json();
+  
+  if (!response.ok) {
+    return {
+      success: false,
+      message: result.message || 'Failed to test API key'
+    };
+  }
+  
+  return result;
 }
 
 export async function setGeminiApiKey(apiKey: string): Promise<void> {
-  // This function no longer actually sets an API key as we're using the developer's key
-  // We'll just return successfully to maintain API compatibility
-  return Promise.resolve();
+  const response = await fetch('/api/gemini/set-api-key', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      apiKey
+    }),
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Authentication required');
+    }
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to set API key');
+  }
 }
 
 export async function analyzeAssignment(
@@ -72,48 +111,23 @@ export async function generateDraft(
   analysisResult: AnalysisResult,
   additionalInstructions?: string
 ): Promise<DraftResult> {
-  // Ensure suggestedApproach is a string before sending to the API
-  const normalizedAnalysisResult = {
-    ...analysisResult,
-    // Handle the case where suggestedApproach might be an array
-    suggestedApproach: Array.isArray(analysisResult.suggestedApproach) 
-      ? analysisResult.suggestedApproach.join('\n') 
-      : analysisResult.suggestedApproach,
-    // Ensure other array fields are proper arrays
-    topics: Array.isArray(analysisResult.topics) 
-      ? analysisResult.topics 
-      : [analysisResult.topics || ""],
-    requirements: Array.isArray(analysisResult.requirements) 
-      ? analysisResult.requirements 
-      : [analysisResult.requirements || ""],
-    externalLinks: Array.isArray(analysisResult.externalLinks) 
-      ? analysisResult.externalLinks 
-      : [analysisResult.externalLinks || ""]
-  };
+  const response = await fetch('/api/gemini/generate-draft', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      analysisResult,
+      additionalInstructions
+    }),
+    credentials: 'include',
+  });
   
-  try {
-    const response = await fetch('/api/gemini/generate-draft', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        analysisResult: normalizedAnalysisResult,
-        additionalInstructions
-      }),
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to generate draft:', await response.text());
-      throw new Error('Failed to generate draft');
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('Error in generateDraft:', error);
-    throw new Error('Failed to generate draft: ' + (error instanceof Error ? error.message : String(error)));
+  if (!response.ok) {
+    throw new Error('Failed to generate draft');
   }
+  
+  return response.json();
 }
 
 export async function enhanceContent(

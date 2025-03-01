@@ -28,9 +28,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="container mx-auto p-4">
-          <Router />
-        </div>
+        <Router />
         <Toaster />
       </AuthProvider>
     </QueryClientProvider>
