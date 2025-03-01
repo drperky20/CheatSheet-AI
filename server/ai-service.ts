@@ -250,44 +250,54 @@ export async function analyzeAssignment(
   assignmentDetails: string,
   externalContent?: string
 ): Promise<AnalysisResult> {
-  // Simulate AI processing time
-  await simulateAIProcessing(2000);
-  
-  // Extract information from the assignment
-  const assignmentType = classifyAssignmentType(assignmentDetails);
-  const requirements = extractRequirements(assignmentDetails);
-  const topics = extractTopics(assignmentDetails);
-  
-  // Extract external links
-  const linkRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>/g;
-  const externalLinks: string[] = [];
-  let match;
-  
-  while ((match = linkRegex.exec(assignmentDetails)) !== null) {
-    if (match[1] && !match[1].startsWith('#')) {
-      externalLinks.push(match[1]);
+  try {
+    // Import the Gemini service implementation
+    const { analyzeAssignmentWithGemini } = await import('./gemini-service');
+    
+    // Use Google Gemini to analyze the assignment
+    return await analyzeAssignmentWithGemini(assignmentDetails, externalContent);
+  } catch (error) {
+    console.error("Error using Google Gemini for analysis, falling back to simulation:", error);
+    
+    // Simulate AI processing time for fallback
+    await simulateAIProcessing(2000);
+    
+    // Extract information from the assignment as fallback
+    const assignmentType = classifyAssignmentType(assignmentDetails);
+    const requirements = extractRequirements(assignmentDetails);
+    const topics = extractTopics(assignmentDetails);
+    
+    // Extract external links
+    const linkRegex = /<a[^>]+href=["']([^"']+)["'][^>]*>/g;
+    const externalLinks: string[] = [];
+    let match;
+    
+    while ((match = linkRegex.exec(assignmentDetails)) !== null) {
+      if (match[1] && !match[1].startsWith('#')) {
+        externalLinks.push(match[1]);
+      }
     }
+    
+    // Generate approach and custom prompt
+    const suggestedApproach = generateSuggestedApproach(assignmentType, requirements);
+    const customPrompt = generateCustomPrompt(assignmentType, requirements, topics);
+    
+    // If external content was provided, integrate it into the analysis
+    if (externalContent) {
+      // In a real implementation, we would analyze the external content
+      // and update our understanding of the assignment
+      requirements.push("Additional requirements from external resources have been incorporated.");
+    }
+    
+    return {
+      assignmentType,
+      topics,
+      requirements,
+      suggestedApproach,
+      externalLinks,
+      customPrompt
+    };
   }
-  
-  // Generate approach and custom prompt
-  const suggestedApproach = generateSuggestedApproach(assignmentType, requirements);
-  const customPrompt = generateCustomPrompt(assignmentType, requirements, topics);
-  
-  // If external content was provided, integrate it into the analysis
-  if (externalContent) {
-    // In a real implementation, we would analyze the external content
-    // and update our understanding of the assignment
-    requirements.push("Additional requirements from external resources have been incorporated.");
-  }
-  
-  return {
-    assignmentType,
-    topics,
-    requirements,
-    suggestedApproach,
-    externalLinks,
-    customPrompt
-  };
 }
 
 // Generate a draft based on the analysis
@@ -363,29 +373,19 @@ The output should be formatted in Markdown.`;
   
   switch (assignmentType) {
     case 'Programming Assignment':
-      draftContent = generateProgrammingAssignmentDraft(context, {
-        topics, requirements, suggestedApproach, customPrompt
-      });
+      draftContent = generateProgrammingAssignmentDraft(context, analysisResult);
       break;
     case 'Writing Assignment':
-      draftContent = generateWritingAssignmentDraft(context, {
-        topics, requirements, suggestedApproach, customPrompt
-      });
+      draftContent = generateWritingAssignmentDraft(context, analysisResult);
       break;
     case 'Research Assignment':
-      draftContent = generateResearchAssignmentDraft(context, {
-        topics, requirements, suggestedApproach, customPrompt
-      });
+      draftContent = generateResearchAssignmentDraft(context, analysisResult);
       break;
     case 'Presentation':
-      draftContent = generatePresentationDraft(context, {
-        topics, requirements, suggestedApproach, customPrompt
-      });
+      draftContent = generatePresentationDraft(context, analysisResult);
       break;
     default:
-      draftContent = generateGeneralAssignmentDraft(context, {
-        topics, requirements, suggestedApproach, customPrompt
-      });
+      draftContent = generateGeneralAssignmentDraft(context, analysisResult);
   }
   
   // Generate citations if applicable
