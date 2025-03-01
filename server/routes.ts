@@ -197,6 +197,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.get("/api/gemini/check-api-key", ensureAuthenticated, (req, res) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    
+    res.json({ 
+      isSet: !!apiKey,
+      provider: apiKey ? "Google Gemini" : null
+    });
+  });
+  
   app.post("/api/gemini/analyze-assignment", ensureAuthenticated, async (req, res, next) => {
     try {
       const schema = z.object({

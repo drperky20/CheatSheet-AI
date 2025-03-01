@@ -306,98 +306,62 @@ export async function generateDraft(
   analysisResult: AnalysisResult,
   externalContent?: string
 ): Promise<DraftResult> {
-  // Simulate AI processing time
-  await simulateAIProcessing(3000);
-  
-  // In a real implementation, this would call the Gemini 2.0 Flash model
-  // or xAI's Grok model with the system prompt and assignment details
-  
-  // Extract relevant information from the analysis
-  const { assignmentType, topics, requirements, suggestedApproach, customPrompt } = analysisResult;
-  
-  // Combine assignment details with external content if available
-  const context = externalContent ? 
-    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
-    assignmentDetails;
-  
-  // Build a system prompt that would be used with the AI model
-  const systemPrompt = `You are an AI assistant specializing in helping students with assignments. 
-Your task is to generate a well-structured, high-quality draft for a ${assignmentType} based on 
-the provided assignment details and analysis.
-
-<Assignment Description>
-${context}
-</Assignment Description>
-
-<Assignment Analysis>
-Type: ${assignmentType}
-Topics: ${topics.join(', ')}
-Requirements: 
-${requirements.map(req => `- ${req}`).join('\n')}
-Suggested Approach: 
-${suggestedApproach}
-Additional Notes: ${customPrompt}
-</Assignment Analysis>
-
-Guidelines for generating the draft:
-1. Create a well-structured document with appropriate sections based on the assignment type
-2. Include an introduction that clearly states the purpose and scope
-3. Address all the requirements mentioned in the analysis
-4. Follow the suggested approach for organizing the content
-5. Use academic language appropriate for the assignment type
-6. Include placeholders for references or citations where appropriate
-7. End with a conclusion that summarizes the key points
-
-For different assignment types, follow these specific guidelines:
-- For Programming Assignments: Include implementation strategy, pseudocode examples, and testing approaches
-- For Writing Assignments: Create a clear outline with thesis statements and supporting points
-- For Research Assignments: Include methodology section and literature review structure
-- For Presentations: Organize content into slide-by-slide outline with speaker notes
-- For General Assignments: Ensure logical flow between sections with clear transitions
-
-The output should be formatted in Markdown.`;
-
-  // For demo purposes, we'll simulate what would happen if we called Gemini
-  // In a real implementation, we would pass the system prompt to the Google Gemini model
-  
-  // This would be replaced with an actual Gemini API call:
-  // const response = await callGeminiAPI(systemPrompt);
-  // const draftContent = response.text;
-  
-  let draftContent = '';
-  const title = topics.length > 0 ? topics[0] : assignmentType;
-  
-  // For the demo, we'll continue to provide different templates based on assignment type
-  // but in a real implementation, Gemini would generate the entire response
-  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
-  
-  switch (assignmentType) {
-    case 'Programming Assignment':
-      draftContent = generateProgrammingAssignmentDraft(context, analysisResult);
-      break;
-    case 'Writing Assignment':
-      draftContent = generateWritingAssignmentDraft(context, analysisResult);
-      break;
-    case 'Research Assignment':
-      draftContent = generateResearchAssignmentDraft(context, analysisResult);
-      break;
-    case 'Presentation':
-      draftContent = generatePresentationDraft(context, analysisResult);
-      break;
-    default:
-      draftContent = generateGeneralAssignmentDraft(context, analysisResult);
+  try {
+    // Import the Gemini service implementation
+    const { generateDraftWithGemini } = await import('./gemini-service');
+    
+    // Use Google Gemini to generate the draft
+    // We can add additional instructions based on the external content
+    const additionalInstructions = externalContent ? 
+      `Please incorporate insights from this additional content: ${externalContent}` : 
+      undefined;
+    
+    return await generateDraftWithGemini(analysisResult, additionalInstructions);
+  } catch (error) {
+    console.error("Error using Google Gemini for draft generation, falling back to simulation:", error);
+    
+    // Simulate AI processing time for fallback
+    await simulateAIProcessing(3000);
+    
+    // Extract relevant information from the analysis
+    const { assignmentType, topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+    
+    // Combine assignment details with external content if available
+    const context = externalContent ? 
+      `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+      assignmentDetails;
+    
+    // For simulation, use our templated generators based on assignment type
+    let draftContent = '';
+    
+    switch (assignmentType) {
+      case 'Programming Assignment':
+        draftContent = generateProgrammingAssignmentDraft(context, analysisResult);
+        break;
+      case 'Writing Assignment':
+        draftContent = generateWritingAssignmentDraft(context, analysisResult);
+        break;
+      case 'Research Assignment':
+        draftContent = generateResearchAssignmentDraft(context, analysisResult);
+        break;
+      case 'Presentation':
+        draftContent = generatePresentationDraft(context, analysisResult);
+        break;
+      default:
+        draftContent = generateGeneralAssignmentDraft(context, analysisResult);
+    }
+    
+    // Generate citations if applicable
+    const citations = externalContent 
+      ? ['External resource cited in this draft']
+      : undefined;
+    
+    return {
+      content: draftContent,
+      citations,
+      notes: 'This draft has been generated based on the assignment requirements. Please review and personalize it as needed.'
+    };
   }
-  
-  // Generate citations if applicable
-  const citations = externalContent 
-    ? ['External resource cited in this draft']
-    : undefined;
-  
-  return {
-    content: draftContent,
-    citations,
-    notes: 'This draft has been generated based on the assignment requirements. Please review and personalize it as needed.'
-  };
 }
 
 // Helper function to generate programming assignment draft
@@ -741,97 +705,76 @@ export async function enhanceContent(
   content: string,
   instruction: string
 ): Promise<string> {
-  // Simulate AI processing time
-  await simulateAIProcessing(1500);
-  
-  // In a real implementation, this would call the Google Gemini model
-  // with a prompt to enhance the content according to the instruction
-  
-  // Build a system prompt that would be used with the Gemini model
-  const systemPrompt = `You are an AI assistant specializing in enhancing and improving 
-written assignments. Your task is to take the provided content and modify it according to
-the specific instruction.
-
-<Original Content>
-${content}
-</Original Content>
-
-<Instruction>
-${instruction}
-</Instruction>
-
-Guidelines for enhancing the content:
-1. Follow the specific instruction carefully
-2. Maintain the original meaning and intent of the content
-3. Preserve the structure and formatting of the document
-4. Make changes that improve the overall quality and effectiveness
-5. Ensure academic integrity and proper language throughout
-
-The output should be the enhanced version of the content in Markdown format, with no explanations
-or additional comments outside the content itself.`;
-
-  // In a real implementation we would call:
-  // const response = await callGeminiAPI(systemPrompt);
-  // return response.text;
-  
-  // For demo purposes, just make some simple modifications based on the instruction
-  let enhancedContent = content;
-  
-  switch (instruction.toLowerCase()) {
-    case "improve writing quality":
-      // Simulate improving the writing quality as Gemini would
-      enhancedContent = content
-        .replace(/very/g, "significantly")
-        .replace(/good/g, "excellent")
-        .replace(/bad/g, "problematic")
-        .replace(/big/g, "substantial")
-        .replace(/important/g, "critical")
-        .replace(/shows/g, "demonstrates")
-        .replace(/uses/g, "utilizes")
-        .replace(/make/g, "develop")
-        .replace(/has/g, "possesses")
-        .replace(/but/g, "however");
-      break;
-      
-    case "fix grammar and spelling":
-      // Simulate fixing grammar as Gemini would
-      enhancedContent = content
-        .replace(/i /g, "I ")
-        .replace(/dont/g, "don't")
-        .replace(/cant/g, "can't")
-        .replace(/wont/g, "won't")
-        .replace(/wasnt/g, "wasn't")
-        .replace(/didnt/g, "didn't")
-        .replace(/its /g, "it's ")
-        .replace(/Im /g, "I'm ")
-        .replace(/youre/g, "you're")
-        .replace(/there /g, "their ")
-        .replace(/thier/g, "their")
-        .replace(/alot/g, "a lot");
-      break;
-      
-    case "make more concise":
-      // Simulate making content more concise as Gemini would
-      enhancedContent = content
-        .replace(/in order to/g, "to")
-        .replace(/due to the fact that/g, "because")
-        .replace(/at this point in time/g, "now")
-        .replace(/in the event that/g, "if")
-        .replace(/for the purpose of/g, "for")
-        .replace(/with regard to/g, "regarding")
-        .replace(/in spite of the fact that/g, "although")
-        .replace(/on the grounds that/g, "because")
-        .replace(/in view of the fact that/g, "because")
-        .replace(/on the basis of/g, "based on")
-        .replace(/it should be noted that/g, "note that")
-        .replace(/it is important to note that/g, "notably")
-        .replace(/needless to say/g, "");
-      break;
-      
-    case "expand with more details":
-      // Simulate adding more detail as Gemini would
-      if (content.includes("function") || content.includes("code")) {
-        enhancedContent = content + `
+  try {
+    // Import the Gemini service implementation
+    const { enhanceContentWithGemini } = await import('./gemini-service');
+    
+    // Use Google Gemini to enhance the content
+    return await enhanceContentWithGemini(content, instruction);
+  } catch (error) {
+    console.error("Error using Google Gemini for content enhancement, falling back to simulation:", error);
+    
+    // Simulate AI processing time for fallback
+    await simulateAIProcessing(1500);
+    
+    // For demo purposes in fallback mode, just make some simple modifications
+    let enhancedContent = content;
+    
+    switch (instruction.toLowerCase()) {
+      case "improve writing quality":
+        // Simulate improving the writing quality as Gemini would
+        enhancedContent = content
+          .replace(/very/g, "significantly")
+          .replace(/good/g, "excellent")
+          .replace(/bad/g, "problematic")
+          .replace(/big/g, "substantial")
+          .replace(/important/g, "critical")
+          .replace(/shows/g, "demonstrates")
+          .replace(/uses/g, "utilizes")
+          .replace(/make/g, "develop")
+          .replace(/has/g, "possesses")
+          .replace(/but/g, "however");
+        break;
+        
+      case "fix grammar and spelling":
+        // Simulate fixing grammar as Gemini would
+        enhancedContent = content
+          .replace(/i /g, "I ")
+          .replace(/dont/g, "don't")
+          .replace(/cant/g, "can't")
+          .replace(/wont/g, "won't")
+          .replace(/wasnt/g, "wasn't")
+          .replace(/didnt/g, "didn't")
+          .replace(/its /g, "it's ")
+          .replace(/Im /g, "I'm ")
+          .replace(/youre/g, "you're")
+          .replace(/there /g, "their ")
+          .replace(/thier/g, "their")
+          .replace(/alot/g, "a lot");
+        break;
+        
+      case "make more concise":
+        // Simulate making content more concise as Gemini would
+        enhancedContent = content
+          .replace(/in order to/g, "to")
+          .replace(/due to the fact that/g, "because")
+          .replace(/at this point in time/g, "now")
+          .replace(/in the event that/g, "if")
+          .replace(/for the purpose of/g, "for")
+          .replace(/with regard to/g, "regarding")
+          .replace(/in spite of the fact that/g, "although")
+          .replace(/on the grounds that/g, "because")
+          .replace(/in view of the fact that/g, "because")
+          .replace(/on the basis of/g, "based on")
+          .replace(/it should be noted that/g, "note that")
+          .replace(/it is important to note that/g, "notably")
+          .replace(/needless to say/g, "");
+        break;
+        
+      case "expand with more details":
+        // Simulate adding more detail as Gemini would
+        if (content.includes("function") || content.includes("code")) {
+          enhancedContent = content + `
 
 ## Additional Implementation Details
 
@@ -852,8 +795,8 @@ The solution design emphasizes several key software engineering principles:
    - Performance benchmarking for critical operations
 
 The implementation follows industry best practices for code structure, naming conventions, and design patterns appropriate for the specific problem domain.`;
-      } else {
-        enhancedContent = content + `
+        } else {
+          enhancedContent = content + `
 
 ## Extended Analysis
 
@@ -877,12 +820,12 @@ This examination can be further contextualized within broader theoretical framew
    - Where do current theoretical models fall short in explaining observed phenomena?
 
 These extended considerations situate the analysis within a richer conceptual landscape, highlighting both theoretical significance and practical applications.`;
-      }
-      break;
-      
-    case "add academic citations":
-      // Simulate adding citations as Gemini would
-      enhancedContent = content + `
+        }
+        break;
+        
+      case "add academic citations":
+        // Simulate adding citations as Gemini would
+        enhancedContent = content + `
 
 ## References
 
@@ -905,12 +848,13 @@ Newell, A., & Simon, H. A. (1972). *Human problem solving*. Prentice-Hall.
 Smith, E. E., & Jonides, J. (1999). Storage and executive processes in the frontal lobes. *Science, 283*(5408), 1657-1661.
 
 Tulving, E. (2002). Episodic memory: From mind to brain. *Annual Review of Psychology, 53*(1), 1-25.`;
-      break;
-      
-    default:
-      // For any other instruction, add a generic enhancement comment
-      enhancedContent = content + `\n\n*This content has been enhanced based on the instruction: "${instruction}"*`;
+        break;
+        
+      default:
+        // For any other instruction, add a generic enhancement comment
+        enhancedContent = content + `\n\n*This content has been enhanced based on the instruction: "${instruction}"*`;
+    }
+    
+    return enhancedContent;
   }
-  
-  return enhancedContent;
 }
