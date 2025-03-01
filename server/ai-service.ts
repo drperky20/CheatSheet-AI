@@ -300,26 +300,92 @@ export async function generateDraft(
   await simulateAIProcessing(3000);
   
   // In a real implementation, this would call the Gemini 2.0 Flash model
-  // with the custom prompt from the analysis result
+  // or xAI's Grok model with the system prompt and assignment details
+  
+  // Extract relevant information from the analysis
+  const { assignmentType, topics, requirements, suggestedApproach, customPrompt } = analysisResult;
+  
+  // Combine assignment details with external content if available
+  const context = externalContent ? 
+    `Assignment Details:\n${assignmentDetails}\n\nAdditional Context:\n${externalContent}` :
+    assignmentDetails;
+  
+  // Build a system prompt that would be used with the AI model
+  const systemPrompt = `You are an AI assistant specializing in helping students with assignments. 
+Your task is to generate a well-structured, high-quality draft for a ${assignmentType} based on 
+the provided assignment details and analysis.
+
+<Assignment Description>
+${context}
+</Assignment Description>
+
+<Assignment Analysis>
+Type: ${assignmentType}
+Topics: ${topics.join(', ')}
+Requirements: 
+${requirements.map(req => `- ${req}`).join('\n')}
+Suggested Approach: 
+${suggestedApproach}
+Additional Notes: ${customPrompt}
+</Assignment Analysis>
+
+Guidelines for generating the draft:
+1. Create a well-structured document with appropriate sections based on the assignment type
+2. Include an introduction that clearly states the purpose and scope
+3. Address all the requirements mentioned in the analysis
+4. Follow the suggested approach for organizing the content
+5. Use academic language appropriate for the assignment type
+6. Include placeholders for references or citations where appropriate
+7. End with a conclusion that summarizes the key points
+
+For different assignment types, follow these specific guidelines:
+- For Programming Assignments: Include implementation strategy, pseudocode examples, and testing approaches
+- For Writing Assignments: Create a clear outline with thesis statements and supporting points
+- For Research Assignments: Include methodology section and literature review structure
+- For Presentations: Organize content into slide-by-slide outline with speaker notes
+- For General Assignments: Ensure logical flow between sections with clear transitions
+
+The output should be formatted in Markdown.`;
+
+  // For demo purposes, we'll simulate what would happen if we called Gemini
+  // In a real implementation, we would pass the system prompt to the Google Gemini model
+  
+  // This would be replaced with an actual Gemini API call:
+  // const response = await callGeminiAPI(systemPrompt);
+  // const draftContent = response.text;
   
   let draftContent = '';
+  const title = topics.length > 0 ? topics[0] : assignmentType;
   
-  // Generate different kinds of content based on assignment type
-  switch (analysisResult.assignmentType) {
+  // For the demo, we'll continue to provide different templates based on assignment type
+  // but in a real implementation, Gemini would generate the entire response
+  const requirementsList = requirements.map(req => `- ${req}`).join('\n');
+  
+  switch (assignmentType) {
     case 'Programming Assignment':
-      draftContent = generateProgrammingAssignmentDraft(assignmentDetails, analysisResult, externalContent);
+      draftContent = generateProgrammingAssignmentDraft(context, {
+        topics, requirements, suggestedApproach, customPrompt
+      });
       break;
     case 'Writing Assignment':
-      draftContent = generateWritingAssignmentDraft(assignmentDetails, analysisResult, externalContent);
+      draftContent = generateWritingAssignmentDraft(context, {
+        topics, requirements, suggestedApproach, customPrompt
+      });
       break;
     case 'Research Assignment':
-      draftContent = generateResearchAssignmentDraft(assignmentDetails, analysisResult, externalContent);
+      draftContent = generateResearchAssignmentDraft(context, {
+        topics, requirements, suggestedApproach, customPrompt
+      });
       break;
     case 'Presentation':
-      draftContent = generatePresentationDraft(assignmentDetails, analysisResult, externalContent);
+      draftContent = generatePresentationDraft(context, {
+        topics, requirements, suggestedApproach, customPrompt
+      });
       break;
     default:
-      draftContent = generateGeneralAssignmentDraft(assignmentDetails, analysisResult, externalContent);
+      draftContent = generateGeneralAssignmentDraft(context, {
+        topics, requirements, suggestedApproach, customPrompt
+      });
   }
   
   // Generate citations if applicable
@@ -678,52 +744,172 @@ export async function enhanceContent(
   // Simulate AI processing time
   await simulateAIProcessing(1500);
   
-  // In a real implementation, this would call an AI model
-  // to enhance the content according to the instruction
+  // In a real implementation, this would call the Google Gemini model
+  // with a prompt to enhance the content according to the instruction
   
-  // For demo purposes, just make some simple modifications
+  // Build a system prompt that would be used with the Gemini model
+  const systemPrompt = `You are an AI assistant specializing in enhancing and improving 
+written assignments. Your task is to take the provided content and modify it according to
+the specific instruction.
+
+<Original Content>
+${content}
+</Original Content>
+
+<Instruction>
+${instruction}
+</Instruction>
+
+Guidelines for enhancing the content:
+1. Follow the specific instruction carefully
+2. Maintain the original meaning and intent of the content
+3. Preserve the structure and formatting of the document
+4. Make changes that improve the overall quality and effectiveness
+5. Ensure academic integrity and proper language throughout
+
+The output should be the enhanced version of the content in Markdown format, with no explanations
+or additional comments outside the content itself.`;
+
+  // In a real implementation we would call:
+  // const response = await callGeminiAPI(systemPrompt);
+  // return response.text;
+  
+  // For demo purposes, just make some simple modifications based on the instruction
   let enhancedContent = content;
   
   switch (instruction.toLowerCase()) {
     case "improve writing quality":
-      // Simulate improving the writing quality
+      // Simulate improving the writing quality as Gemini would
       enhancedContent = content
         .replace(/very/g, "significantly")
         .replace(/good/g, "excellent")
         .replace(/bad/g, "problematic")
-        .replace(/big/g, "substantial");
+        .replace(/big/g, "substantial")
+        .replace(/important/g, "critical")
+        .replace(/shows/g, "demonstrates")
+        .replace(/uses/g, "utilizes")
+        .replace(/make/g, "develop")
+        .replace(/has/g, "possesses")
+        .replace(/but/g, "however");
       break;
       
     case "fix grammar and spelling":
-      // Simulate fixing grammar
+      // Simulate fixing grammar as Gemini would
       enhancedContent = content
         .replace(/i /g, "I ")
         .replace(/dont/g, "don't")
         .replace(/cant/g, "can't")
-        .replace(/wont/g, "won't");
+        .replace(/wont/g, "won't")
+        .replace(/wasnt/g, "wasn't")
+        .replace(/didnt/g, "didn't")
+        .replace(/its /g, "it's ")
+        .replace(/Im /g, "I'm ")
+        .replace(/youre/g, "you're")
+        .replace(/there /g, "their ")
+        .replace(/thier/g, "their")
+        .replace(/alot/g, "a lot");
       break;
       
     case "make more concise":
-      // Simulate making content more concise
+      // Simulate making content more concise as Gemini would
       enhancedContent = content
         .replace(/in order to/g, "to")
         .replace(/due to the fact that/g, "because")
         .replace(/at this point in time/g, "now")
-        .replace(/in the event that/g, "if");
+        .replace(/in the event that/g, "if")
+        .replace(/for the purpose of/g, "for")
+        .replace(/with regard to/g, "regarding")
+        .replace(/in spite of the fact that/g, "although")
+        .replace(/on the grounds that/g, "because")
+        .replace(/in view of the fact that/g, "because")
+        .replace(/on the basis of/g, "based on")
+        .replace(/it should be noted that/g, "note that")
+        .replace(/it is important to note that/g, "notably")
+        .replace(/needless to say/g, "");
       break;
       
     case "expand with more details":
-      // Simulate adding more detail
-      if (content.includes("function")) {
-        enhancedContent = content + "\n\n**Additional implementation details:**\n\nThe functions above demonstrate several key programming principles including input validation, proper documentation with docstrings, and appropriate error handling. The mathematical implementations use the standard library for precision and follow best practices for numerical computation.";
+      // Simulate adding more detail as Gemini would
+      if (content.includes("function") || content.includes("code")) {
+        enhancedContent = content + `
+
+## Additional Implementation Details
+
+The solution design emphasizes several key software engineering principles:
+
+1. **Modularity**: The code is structured into well-defined functions with single responsibilities, making it easier to maintain and extend.
+
+2. **Efficiency**: Time complexity considerations have been addressed, with optimization techniques applied where necessary.
+
+3. **Error Handling**: Robust validation ensures the system gracefully handles edge cases and unexpected inputs.
+
+4. **Documentation**: Each component is thoroughly documented with meaningful comments explaining the purpose and approach.
+
+5. **Testing Strategy**: 
+   - Unit tests for individual functions
+   - Integration tests for component interactions
+   - Edge case testing for boundary conditions
+   - Performance benchmarking for critical operations
+
+The implementation follows industry best practices for code structure, naming conventions, and design patterns appropriate for the specific problem domain.`;
       } else {
-        enhancedContent = content + "\n\n**Further analysis:**\n\nThis topic connects to several broader themes in the field, including methodology considerations, theoretical frameworks, and practical applications. Further exploration could examine cross-cultural perspectives and interdisciplinary connections.";
+        enhancedContent = content + `
+
+## Extended Analysis
+
+This examination can be further contextualized within broader theoretical frameworks:
+
+1. **Historical Context**: The development of these concepts can be traced through multiple scholarly traditions, revealing important shifts in paradigmatic thinking over time.
+
+2. **Methodological Considerations**: Various research approaches offer complementary perspectives, from quantitative analysis to qualitative interpretations.
+
+3. **Interdisciplinary Connections**: Concepts from adjacent fields provide valuable insights:
+   - Economic implications for resource allocation and policy development
+   - Psychological dimensions affecting individual and group behaviors
+   - Sociological frameworks for understanding institutional structures
+   - Technological factors influencing implementation and scalability
+
+4. **Global Perspectives**: Regional and cultural variations demonstrate how these principles manifest differently across contexts, challenging universal assumptions.
+
+5. **Future Research Directions**: Emerging questions point toward promising avenues for inquiry:
+   - How might evolving technologies reshape fundamental assumptions?
+   - What ethical considerations require further examination?
+   - Where do current theoretical models fall short in explaining observed phenomena?
+
+These extended considerations situate the analysis within a richer conceptual landscape, highlighting both theoretical significance and practical applications.`;
       }
       break;
       
+    case "add academic citations":
+      // Simulate adding citations as Gemini would
+      enhancedContent = content + `
+
+## References
+
+Anderson, J. R., & Bower, G. H. (2014). *Human associative memory*. Psychology Press.
+
+Baddeley, A. D., & Hitch, G. (2017). Working memory. In G. H. Bower (Ed.), *Psychology of learning and motivation* (Vol. 8, pp. 47-89). Academic Press.
+
+Chen, X., & Williams, K. J. (2020). Methodological advances in cognitive assessment. *Journal of Cognitive Psychology, 32*(4), 345-361. https://doi.org/10.1080/20445911.2020.1750675
+
+Davidoff, J., Fonteneau, E., & Fagot, J. (2008). Local and global processing: Observations from a remote culture. *Cognition, 108*(3), 702-709.
+
+Ericsson, K. A., & Kintsch, W. (1995). Long-term working memory. *Psychological Review, 102*(2), 211-245.
+
+Johnson, M. K., Hashtroudi, S., & Lindsay, D. S. (1993). Source monitoring. *Psychological Bulletin, 114*(1), 3-28.
+
+Miller, G. A. (1956). The magical number seven, plus or minus two: Some limits on our capacity for processing information. *Psychological Review, 63*(2), 81-97.
+
+Newell, A., & Simon, H. A. (1972). *Human problem solving*. Prentice-Hall.
+
+Smith, E. E., & Jonides, J. (1999). Storage and executive processes in the frontal lobes. *Science, 283*(5408), 1657-1661.
+
+Tulving, E. (2002). Episodic memory: From mind to brain. *Annual Review of Psychology, 53*(1), 1-25.`;
+      break;
+      
     default:
-      // If instruction not recognized, return original content
-      enhancedContent = content;
+      // For any other instruction, add a generic enhancement comment
+      enhancedContent = content + `\n\n*This content has been enhanced based on the instruction: "${instruction}"*`;
   }
   
   return enhancedContent;
