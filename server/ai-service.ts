@@ -386,13 +386,11 @@ function generateProgrammingAssignmentDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create a simple implementation strategy based on suggested approach
-  let approachText = '';
-  if (Array.isArray(suggestedApproach)) {
-    approachText = suggestedApproach.join('\n');
-  } else {
-    approachText = suggestedApproach;
-  }
-  const implementationStrategy = approachText.split('\n').map(line => line.trim()).filter(line => line.length > 0).join('\n');
+  const normalizedApproach = normalizeApproach(suggestedApproach);
+  const implementationStrategy = normalizedApproach.split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0)
+    .join('\n');
   
   return `# ${title}
 
@@ -420,6 +418,14 @@ ${customPrompt}
 `;
 }
 
+// Helper function to normalize suggestedApproach to string format
+function normalizeApproach(approach: string | string[]): string {
+  if (Array.isArray(approach)) {
+    return approach.join('\n');
+  }
+  return approach;
+}
+
 // Helper function to generate writing assignment draft
 function generateWritingAssignmentDraft(
   assignmentDetails: string,
@@ -441,9 +447,10 @@ function generateWritingAssignmentDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create an outline based on the suggested approach
-  const outlineSections = suggestedApproach.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+  const normalizedApproach = normalizeApproach(suggestedApproach);
+  const outlineSections = normalizedApproach.split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
   
   const formattedOutline = outlineSections.map(section => {
     // Check if it's a main section or subsection
@@ -498,13 +505,14 @@ function generateResearchAssignmentDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create research sections from the suggested approach
-  const researchSections = suggestedApproach.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+  const normalizedApproach = normalizeApproach(suggestedApproach);
+  const researchSections = normalizedApproach.split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
   
   // Format the research sections with proper numbering and hierarchy
   let sectionNumber = 1;
-  const formattedSections = researchSections.map(section => {
+  const formattedSections = researchSections.map((section: string) => {
     if (section.startsWith('- ')) {
       // This is a subsection
       return `### ${sectionNumber-1}.${section.substring(2).trim()}`;
@@ -571,13 +579,14 @@ function generatePresentationDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create presentation slides from the suggested approach
-  const slideTopics = suggestedApproach.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+  const normalizedApproach = normalizeApproach(suggestedApproach);
+  const slideTopics = normalizedApproach.split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
   
   // Format the slides
   let slideNumber = 3; // Start at 3 because we have title and overview slides
-  const formattedSlides = slideTopics.map(topic => {
+  const formattedSlides = slideTopics.map((topic: string) => {
     const slideContent = `### Slide ${slideNumber++}: ${topic.startsWith('- ') ? topic.substring(2) : topic}
 **Key Points:**
 - Topic exploration
@@ -659,9 +668,10 @@ function generateGeneralAssignmentDraft(
   const requirementsList = requirements.map(req => `- ${req}`).join('\n');
   
   // Create structured sections from the suggested approach
-  const sectionTopics = suggestedApproach.split('\n')
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+  const normalizedApproach = normalizeApproach(suggestedApproach);
+  const sectionTopics = normalizedApproach.split('\n')
+    .map((line: string) => line.trim())
+    .filter((line: string) => line.length > 0);
   
   // Format the sections with proper numbering
   let sectionNumber = 1;
