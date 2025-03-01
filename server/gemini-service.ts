@@ -2,20 +2,15 @@ import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/ge
 import { AnalysisResult, DraftResult } from "./ai-service";
 
 // Initialize the Gemini AI client with provided API key
-let apiKey: string = process.env.GEMINI_API_KEY || "";
+let apiKey: string = process.env.GEMINI_API_KEY || "AIzaSyCqIH9yPMjxBUu4Fxf-Sdlda2PzsbFoyUw";
 let genAI: GoogleGenerativeAI;
 
 // Initialize client with API key
 try {
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not set in environment variables");
-  }
   genAI = new GoogleGenerativeAI(apiKey);
   console.log("Gemini API client initialized successfully");
 } catch (error) {
   console.error("Failed to initialize Gemini client:", error);
-  // Handle initialization error gracefully
-  genAI = new GoogleGenerativeAI("dummy-key");
 }
 
 // Safety settings to avoid harmful content
@@ -42,25 +37,13 @@ const safetySettings = [
 const getModel = () => {
   if (!genAI) {
     // Reinitialize if genAI is not available for some reason
-    if (!apiKey) {
-      throw new Error("Gemini API key is not set");
-    }
     genAI = new GoogleGenerativeAI(apiKey);
   }
   
-  try {
-    return genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
-      safetySettings 
-    });
-  } catch (error) {
-    console.error("Error getting Gemini model:", error);
-    // Fall back to another model if the primary one fails
-    return genAI.getGenerativeModel({ 
-      model: "gemini-pro", 
-      safetySettings 
-    });
-  }
+  return genAI.getGenerativeModel({ 
+    model: "gemini-1.5-pro",
+    safetySettings 
+  });
 };
 
 /**
