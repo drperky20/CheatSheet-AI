@@ -19,6 +19,10 @@ interface CanvasAssignment {
   courseId: number;
   status: 'active' | 'upcoming' | 'completed' | 'overdue';
   externalLinks?: string[];
+  completed?: boolean;
+  submittedAt?: string | null;
+  graded?: boolean;
+  grade?: string | null;
 }
 
 interface CanvasSubmission {

@@ -217,7 +217,7 @@ export async function getCourseAssignments(
   try {
     // Mock data for testing when Canvas credentials aren't available
     if (!canvasUrl || !canvasToken) {
-      const mockAssignments = [
+      const mockAssignments: CanvasAssignment[] = [
         {
           id: 2001,
           name: "Python Functions Assignment",

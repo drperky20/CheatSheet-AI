@@ -253,7 +253,8 @@ export default function AssignmentDetailPage() {
               {isLoading ? (
                 <Skeleton className="h-8 w-32 mt-4 sm:mt-0" />
               ) : (
-                <div className="mt-4 sm:mt-0">
+                <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                  {/* Status badge */}
                   <div className="backdrop-blur-md bg-background/30 px-3 py-1 rounded-full flex items-center border border-primary/10">
                     <span className={`w-2 h-2 rounded-full mr-2 ${
                       assignment?.status === 'active' 
@@ -271,6 +272,22 @@ export default function AssignmentDetailPage() {
                       {assignment?.status === 'completed' && "Completed"}
                     </span>
                   </div>
+
+                  {/* Completion badge */}
+                  {assignment?.completed && (
+                    <div className="backdrop-blur-md bg-green-500/20 px-3 py-1 rounded-full flex items-center border border-green-500/30">
+                      <span className="text-sm text-green-600 dark:text-green-400 font-medium">Submitted</span>
+                    </div>
+                  )}
+                  
+                  {/* Grade badge - only show if graded */}
+                  {assignment?.graded && (
+                    <div className="backdrop-blur-md bg-blue-500/20 px-3 py-1 rounded-full flex items-center border border-blue-500/30">
+                      <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        Grade: {assignment.grade}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -284,6 +301,21 @@ export default function AssignmentDetailPage() {
                 <Brain className="mr-2 h-4 w-4" />
                 <span>Analyze Assignment</span>
               </Button>
+              
+              {/* Generate button - only shown when analysis is complete but draft hasn't been generated yet */}
+              {analysisMutation.data && !editorContent && (
+                <Button 
+                  className="backdrop-blur-md bg-accent/20 hover:bg-accent/30 text-accent border-accent/20"
+                  onClick={() => draftMutation.mutate({
+                    details: assignment?.description || "",
+                    analysisResult: analysisMutation.data
+                  })}
+                  disabled={draftMutation.isPending}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>{draftMutation.isPending ? "Generating Draft..." : "Generate Draft"}</span>
+                </Button>
+              )}
               
               {assignment?.externalLinks && assignment.externalLinks.length > 0 && (
                 <Button 
