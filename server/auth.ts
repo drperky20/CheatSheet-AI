@@ -54,6 +54,41 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Check for Replit auth headers
+  app.use((req, res, next) => {
+    const replitUserId = req.headers['x-replit-user-id'];
+    const replitUserName = req.headers['x-replit-user-name'];
+    
+    if (replitUserId && replitUserName) {
+      // User is authenticated via Replit
+      storage.getUserByUsername(replitUserName as string)
+        .then(existingUser => {
+          if (!existingUser) {
+            // Create user if they don't exist
+            return storage.createUser({
+              username: replitUserName as string,
+              password: `replit-auth-${randomBytes(16).toString('hex')}`,
+              canvasUrl: null,
+              canvasToken: null
+            });
+          }
+          return existingUser;
+        })
+        .then(user => {
+          req.login(user, err => {
+            if (err) console.error("Login error:", err);
+            next();
+          });
+        })
+        .catch(err => {
+          console.error("Replit auth error:", err);
+          next();
+        });
+    } else {
+      next();
+    }
+  });
+
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
