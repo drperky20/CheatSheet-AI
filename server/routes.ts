@@ -301,12 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { analysisResult, additionalInstructions } = schema.parse(req.body);
       
-      // Ensure suggestedApproach is always a string at this point
-      if (typeof analysisResult.suggestedApproach !== 'string') {
-        analysisResult.suggestedApproach = Array.isArray(analysisResult.suggestedApproach) 
-          ? analysisResult.suggestedApproach.join("\n\n")
-          : String(analysisResult.suggestedApproach);
-      }
+      // At this point suggestedApproach will be a string due to the schema transformation
       
       const result = await generateDraftWithGemini(analysisResult, additionalInstructions);
       

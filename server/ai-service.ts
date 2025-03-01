@@ -609,7 +609,7 @@ function generatePresentationDraft(
 
 ### Slide 2: Presentation Overview
 **Today's Agenda:**
-${slideTopics.map(topic => `- ${topic.startsWith('- ') ? topic.substring(2) : topic}`).join('\n')}
+${slideTopics.map((topic: string) => `- ${topic.startsWith('- ') ? topic.substring(2) : topic}`).join('\n')}
 
 ## Assignment Overview
 ${context.substring(0, 150)}...
@@ -675,7 +675,7 @@ function generateGeneralAssignmentDraft(
   
   // Format the sections with proper numbering
   let sectionNumber = 1;
-  const formattedSections = sectionTopics.map(section => {
+  const formattedSections = sectionTopics.map((section: string) => {
     if (section.startsWith('- ')) {
       // This is a subsection
       return `### ${sectionNumber-1}.${sectionNumber % 10} ${section.substring(2).trim()}
