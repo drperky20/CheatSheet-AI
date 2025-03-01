@@ -203,7 +203,19 @@ export default function AssignmentDetailPage() {
   // Handle analyze button click
   const handleAnalyze = () => {
     if (assignment) {
-      analysisMutation.mutate(assignment.description);
+      // If we have file content, include it with the assignment description for better context
+      if (fileContent) {
+        const combinedContext = `
+Assignment Description:
+${assignment.description}
+
+Additional Context from Uploaded File:
+${fileContent}
+        `;
+        analysisMutation.mutate(combinedContext);
+      } else {
+        analysisMutation.mutate(assignment.description);
+      }
     }
   };
 
@@ -229,6 +241,50 @@ export default function AssignmentDetailPage() {
       title: "Draft saved",
       description: "Your work has been saved",
     });
+  };
+  
+  // Handle file upload
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    setUploadedFile(file);
+    
+    // Read the file content
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setFileContent(content);
+      
+      toast({
+        title: "File uploaded",
+        description: `${file.name} will be used for additional context`,
+      });
+      
+      // If we already have an analysis, generate a draft with the file content
+      if (analysisMutation.data) {
+        draftMutation.mutate({
+          details: assignment?.description || "",
+          analysisResult: analysisMutation.data,
+          externalContent: content
+        });
+      }
+    };
+    
+    reader.onerror = () => {
+      toast({
+        title: "Error reading file",
+        description: "Please try again with a different file",
+        variant: "destructive",
+      });
+    };
+    
+    reader.readAsText(file);
+  };
+  
+  // Handle file upload button click
+  const handleFileUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -313,7 +369,8 @@ export default function AssignmentDetailPage() {
                   className="backdrop-blur-md bg-accent/20 hover:bg-accent/30 text-accent border-accent/20"
                   onClick={() => draftMutation.mutate({
                     details: assignment?.description || "",
-                    analysisResult: analysisMutation.data
+                    analysisResult: analysisMutation.data,
+                    externalContent: fileContent || undefined
                   })}
                   disabled={draftMutation.isPending}
                 >
@@ -333,10 +390,21 @@ export default function AssignmentDetailPage() {
                 </Button>
               )}
               
-              <Button className="backdrop-blur-md bg-background/30 border-primary/10 hover:bg-background/50">
+              <Button 
+                className="backdrop-blur-md bg-background/30 border-primary/10 hover:bg-background/50"
+                onClick={handleFileUploadClick}
+              >
                 <Upload className="mr-2 h-4 w-4" />
                 <span>Upload File</span>
               </Button>
+              {/* Hidden file input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".txt,.pdf,.doc,.docx,.md"
+                onChange={handleFileUpload}
+              />
             </div>
           </div>
           
