@@ -1,0 +1,87 @@
+CheatSheet AI is an AI-powered web application designed to automate the assignment process for students. It integrates with the Canvas Learning Management System (LMS) via the Canvas API to fetch courses and assignments, uses the browser-use library to extract content from external links, generates polished drafts using AI, and submits completed work back to Canvas—all within an intuitive, user-friendly interface featuring a glassmorphic design.
+
+User Flow
+
+User Authentication
+Action: Users open the app and are prompted to log in or create a CheatSheet AI account.
+Inputs:
+Email
+Password
+Canvas URL (e.g., xxxx.instructure.com)
+Canvas Access Token
+Instructions: Include a clear guide within the UI on how to locate and create a Canvas Access Token (e.g., navigating to Canvas account settings, generating a token, and copying it).
+Dashboard Interface
+Display: After login, users see a "Courses" page with a glassmorphic UI.
+Functionality: The app fetches and displays the user’s courses from Canvas using the Canvas API.
+Assignment Selection
+Action: Users pick a course from the list.
+Options:
+Upload an assignment (supported formats: PDF, PNG, JPEG).
+Select an assignment from Canvas by loading available assignments via the Canvas API.
+Assignment Processing
+Step 1: Fetch Details
+For a selected Canvas assignment, retrieve all details (e.g., description, due date) using the Canvas API.
+Step 2: Assignment Detail Agent
+Use an AI model (gemini-2.0-flash-lite), named the "Assignment Detail Agent," to:
+Analyze the assignment details.
+Determine the assignment type (e.g., writing assignment, quiz, external assignment).
+Select a custom prompt tailored to the assignment type for the next AI model.
+Step 3: Completion Agent
+Use another AI model (gemini-2.0-flash), named the "Completion Agent," to:
+Take the custom prompt and assignment details from the Assignment Detail Agent.
+Generate a polished, human-like draft that mimics a student’s writing.
+Output the draft into a text editor within the app, styled and functioning like ChatGPT’s "canvas" feature (e.g., with formatting, editing, and AI-assisted suggestions).
+External Link Handling
+Detection: The Assignment Detail Agent scans the assignment description for external links (e.g., Google Docs, reading materials, external forms).
+UI Prompt: If links are found, display a UI element asking the user to "Analyze External Links."
+Upon Approval:
+Planning: The Assignment Detail Agent re-analyzes the assignment and link, creating a step-by-step plan for the "Agentic Browser-Use Model."
+User Input: Prompt the user for any required details (e.g., login credentials for external sites).
+Execution: The "Agentic Browser-Use Model" (using the browser-use library):
+Navigates to the link.
+Follows the plan to extract relevant content (e.g., text from a Google Doc, answers from a form).
+Handles edge cases (e.g., login prompts, dynamic content).
+Passes extracted information to the Completion Agent for inclusion in the draft.
+Review and Submission
+Review: Users can view and edit the generated draft in the text editor, using AI tools for quick refinements.
+Submission Options:
+Download the assignment as a PDF for manual submission.
+Submit directly to Canvas via the Canvas API.
+Technical Requirements
+
+Canvas API Integration
+Use the Canvas REST API to:
+Fetch user courses.
+Retrieve assignment details.
+Submit completed assignments.
+Securely store and use the Canvas Access Token for authentication.
+AI Models
+Assignment Detail Agent (gemini-2.0-flash-lite):
+Analyzes assignment details and links.
+Determines assignment type and selects custom prompts.
+Completion Agent (gemini-2.0-flash):
+Generates human-like drafts based on tailored prompts.
+Ensures readable, structured output.
+Integrate these models into the Replit environment, ensuring API keys or access is configured.
+Agentic Browser-Use Model
+Implement using the browser-use library.
+Capabilities:
+Autonomous navigation of external links.
+Content extraction (text, forms, etc.).
+Handling edge cases (e.g., requiring logins, CAPTCHAs).
+Pre-plan actions based on Assignment Detail Agent’s analysis.
+User Interface
+Design a glassmorphic UI for the dashboard and editor:
+Transparent, blurred backgrounds with vibrant accents.
+Intuitive navigation (e.g., course list, assignment picker).
+Build a text editor mimicking ChatGPT’s "canvas":
+Rich text formatting.
+AI-assisted editing features (e.g., rewrite, expand).
+File Handling
+Support uploading assignments in PDF, PNG, or JPEG formats.
+Convert uploaded files to text (e.g., using OCR for images) for processing by the Assignment Detail Agent.
+Implementation Notes
+
+Modularity: Structure the code to separate authentication, API calls, AI processing, browser automation, and UI components.
+Error Handling: Include robust error messages (e.g., invalid Canvas token, failed link extraction).
+Testing: Ensure each step (authentication, course fetch, draft generation, submission) works seamlessly on Replit.
