@@ -18,6 +18,11 @@ interface ApiKeyStatus {
   provider: string | null;
 }
 
+interface ApiKeyTestResult {
+  success: boolean;
+  message: string;
+}
+
 export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
   const response = await fetch('/api/gemini/check-api-key', {
     method: 'GET',
@@ -32,6 +37,30 @@ export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
   }
   
   return response.json();
+}
+
+export async function testGeminiApiKey(apiKey: string): Promise<ApiKeyTestResult> {
+  const response = await fetch('/api/gemini/test-api-key', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      apiKey
+    }),
+    credentials: 'include',
+  });
+  
+  const result = await response.json();
+  
+  if (!response.ok) {
+    return {
+      success: false,
+      message: result.message || 'Failed to test API key'
+    };
+  }
+  
+  return result;
 }
 
 export async function setGeminiApiKey(apiKey: string): Promise<void> {
@@ -59,7 +88,7 @@ export async function analyzeAssignment(
   assignmentDetails: string,
   externalContent?: string
 ): Promise<AnalysisResult> {
-  const response = await fetch('/api/ai/analyze-assignment', {
+  const response = await fetch('/api/gemini/analyze-assignment', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -79,19 +108,17 @@ export async function analyzeAssignment(
 }
 
 export async function generateDraft(
-  assignmentDetails: string,
   analysisResult: AnalysisResult,
-  externalContent?: string
+  additionalInstructions?: string
 ): Promise<DraftResult> {
-  const response = await fetch('/api/ai/generate-draft', {
+  const response = await fetch('/api/gemini/generate-draft', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      assignmentDetails,
       analysisResult,
-      externalContent
+      additionalInstructions
     }),
     credentials: 'include',
   });
@@ -105,16 +132,16 @@ export async function generateDraft(
 
 export async function enhanceContent(
   content: string,
-  instruction: string
+  instructions: string
 ): Promise<string> {
-  const response = await fetch('/api/ai/enhance-content', {
+  const response = await fetch('/api/gemini/enhance-content', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       content,
-      instruction
+      instructions
     }),
     credentials: 'include',
   });

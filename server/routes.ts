@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -22,6 +22,9 @@ import {
   enhanceContent
 } from "./ai-service";
 
+// Import Google Generative AI SDK
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+
 // Gemini AI Service
 import {
   setGeminiApiKey,
@@ -35,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Error handling middleware for Zod validation errors
-  app.use((err: any, _req: any, res: any, next: any) => {
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     if (err && typeof err.name === 'string' && err.name === 'ZodError') {
       return res.status(400).json({ message: fromZodError(err).message });
     }
@@ -206,6 +209,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  app.post("/api/gemini/test-api-key", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      
+      try {
+        // Create a temporary Gemini client with the provided key
+        const tempGenAI = new GoogleGenerativeAI(apiKey);
+        const model = tempGenAI.getGenerativeModel({ 
+          model: "gemini-1.5-pro",
+          safetySettings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            }
+          ]
+        });
+        
+        // Make a simple request to test the API key
+        const testPrompt = "Hello, this is a test message to verify that the API key is working.";
+        
+        const result = await model.generateContent(testPrompt);
+        const response = await result.response;
+        
+        if (response && response.text()) {
+          res.json({ 
+            success: true, 
+            message: "Gemini API key is valid" 
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: "Invalid Gemini API key or unexpected response"
+          });
+        }
+      } catch (err) {
+        console.error("Error testing Gemini API key:", err);
+        let errorMessage = "Invalid Gemini API key";
+        
+        if (err instanceof Error) {
+          errorMessage = `Invalid Gemini API key: ${err.message}`;
+        }
+        
+        res.status(400).json({ 
+          success: false, 
+          message: errorMessage
+        });
+      }
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   app.post("/api/gemini/analyze-assignment", ensureAuthenticated, async (req, res, next) => {
     try {
       const schema = z.object({
@@ -267,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Middleware to ensure user is authenticated
-function ensureAuthenticated(req: any, res: any, next: any) {
+function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next();
   }
