@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupAuth(app);
 
   // Error handling middleware for Zod validation errors
-  app.use((err: any, _req: any, res: any, next: any) => {
+  app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
     if (err && typeof err.name === 'string' && err.name === 'ZodError') {
       return res.status(400).json({ message: fromZodError(err).message });
     }
@@ -326,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Middleware to ensure user is authenticated
-function ensureAuthenticated(req: any, res: any, next: any) {
+function ensureAuthenticated(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next();
   }
