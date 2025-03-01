@@ -7,7 +7,12 @@ let genAI: GoogleGenerativeAI;
 
 // Initialize client with current API key (if available)
 if (apiKey) {
-  genAI = new GoogleGenerativeAI(apiKey);
+  try {
+    genAI = new GoogleGenerativeAI(apiKey);
+    console.log("Gemini API client initialized with existing key from environment");
+  } catch (error) {
+    console.error("Failed to initialize Gemini client with environment key:", error);
+  }
 }
 
 // Safety settings to avoid harmful content

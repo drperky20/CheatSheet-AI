@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
@@ -21,6 +21,9 @@ import {
   generateDraft,
   enhanceContent
 } from "./ai-service";
+
+// Import Google Generative AI SDK
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
 // Gemini AI Service
 import {
