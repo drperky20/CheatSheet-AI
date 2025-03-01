@@ -224,53 +224,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/gemini/generate-draft", ensureAuthenticated, async (req, res, next) => {
     try {
-      // More flexible schema that handles different data types
       const schema = z.object({
         analysisResult: z.object({
           assignmentType: z.string(),
-          topics: z.array(z.string()).or(z.string().transform(val => [val])),
-          requirements: z.array(z.string()).or(z.string().transform(val => [val])),
-          suggestedApproach: z.string().or(z.array(z.string()).transform(steps => steps.join('\n'))),
-          externalLinks: z.array(z.string()).or(z.string().transform(val => [val])),
+          topics: z.array(z.string()),
+          requirements: z.array(z.string()),
+          suggestedApproach: z.string(),
+          externalLinks: z.array(z.string()),
           customPrompt: z.string()
         }),
         additionalInstructions: z.string().optional()
       });
       
-      // Try to parse with the flexible schema
-      let analysisResult, additionalInstructions;
-      try {
-        ({ analysisResult, additionalInstructions } = schema.parse(req.body));
-      } catch (parseError) {
-        // Log the error and format of the received data for debugging
-        console.error("Error parsing generate-draft payload:", parseError);
-        console.error("Received analysisResult structure:", 
-          JSON.stringify(req.body.analysisResult, null, 2));
-        
-        // Try to fix the data format if possible
-        if (req.body.analysisResult) {
-          analysisResult = {
-            assignmentType: req.body.analysisResult.assignmentType || "General",
-            topics: Array.isArray(req.body.analysisResult.topics) 
-              ? req.body.analysisResult.topics 
-              : [req.body.analysisResult.topics || ""],
-            requirements: Array.isArray(req.body.analysisResult.requirements) 
-              ? req.body.analysisResult.requirements 
-              : [req.body.analysisResult.requirements || ""],
-            suggestedApproach: Array.isArray(req.body.analysisResult.suggestedApproach)
-              ? req.body.analysisResult.suggestedApproach.join('\n')
-              : req.body.analysisResult.suggestedApproach || "",
-            externalLinks: Array.isArray(req.body.analysisResult.externalLinks)
-              ? req.body.analysisResult.externalLinks
-              : [req.body.analysisResult.externalLinks || ""],
-            customPrompt: req.body.analysisResult.customPrompt || ""
-          };
-          additionalInstructions = req.body.additionalInstructions;
-        } else {
-          throw parseError;
-        }
-      }
-      
+      const { analysisResult, additionalInstructions } = schema.parse(req.body);
       const result = await generateDraftWithGemini(analysisResult, additionalInstructions);
       
       res.json(result);

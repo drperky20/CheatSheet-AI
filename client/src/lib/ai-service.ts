@@ -72,48 +72,23 @@ export async function generateDraft(
   analysisResult: AnalysisResult,
   additionalInstructions?: string
 ): Promise<DraftResult> {
-  // Ensure suggestedApproach is a string before sending to the API
-  const normalizedAnalysisResult = {
-    ...analysisResult,
-    // Handle the case where suggestedApproach might be an array
-    suggestedApproach: Array.isArray(analysisResult.suggestedApproach) 
-      ? analysisResult.suggestedApproach.join('\n') 
-      : analysisResult.suggestedApproach,
-    // Ensure other array fields are proper arrays
-    topics: Array.isArray(analysisResult.topics) 
-      ? analysisResult.topics 
-      : [analysisResult.topics || ""],
-    requirements: Array.isArray(analysisResult.requirements) 
-      ? analysisResult.requirements 
-      : [analysisResult.requirements || ""],
-    externalLinks: Array.isArray(analysisResult.externalLinks) 
-      ? analysisResult.externalLinks 
-      : [analysisResult.externalLinks || ""]
-  };
+  const response = await fetch('/api/gemini/generate-draft', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      analysisResult,
+      additionalInstructions
+    }),
+    credentials: 'include',
+  });
   
-  try {
-    const response = await fetch('/api/gemini/generate-draft', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        analysisResult: normalizedAnalysisResult,
-        additionalInstructions
-      }),
-      credentials: 'include',
-    });
-    
-    if (!response.ok) {
-      console.error('Failed to generate draft:', await response.text());
-      throw new Error('Failed to generate draft');
-    }
-    
-    return response.json();
-  } catch (error) {
-    console.error('Error in generateDraft:', error);
-    throw new Error('Failed to generate draft: ' + (error instanceof Error ? error.message : String(error)));
+  if (!response.ok) {
+    throw new Error('Failed to generate draft');
   }
+  
+  return response.json();
 }
 
 export async function enhanceContent(
