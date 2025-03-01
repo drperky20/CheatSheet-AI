@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/canvas/courses", ensureAuthenticated, async (req, res, next) => {
     try {
       const user = req.user as Express.User;
-      const courses = await getCourses(user.canvasUrl, user.canvasToken);
+      const courses = await getCourses(user.canvasUrl || undefined, user.canvasToken || undefined);
       res.json(courses);
     } catch (error) {
       next(error);
@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user as Express.User;
       const courseId = parseInt(req.params.courseId);
-      const assignments = await getCourseAssignments(user.canvasUrl, user.canvasToken, courseId);
+      const assignments = await getCourseAssignments(user.canvasUrl || undefined, user.canvasToken || undefined, courseId);
       res.json(assignments);
     } catch (error) {
       next(error);
@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user as Express.User;
       const courseId = parseInt(req.params.courseId);
       const assignmentId = parseInt(req.params.assignmentId);
-      const assignment = await getAssignmentDetails(user.canvasUrl, user.canvasToken, courseId, assignmentId);
+      const assignment = await getAssignmentDetails(user.canvasUrl || undefined, user.canvasToken || undefined, courseId, assignmentId);
       res.json(assignment);
     } catch (error) {
       next(error);
@@ -83,8 +83,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = submissionSchema.parse(req.body);
       const result = await submitAssignment(
-        user.canvasUrl, 
-        user.canvasToken, 
+        user.canvasUrl || undefined, 
+        user.canvasToken || undefined, 
         courseId, 
         assignmentId, 
         validatedData
@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const { url } = schema.parse(req.body);
-      const result = await analyzeExternalLink(user.canvasUrl, user.canvasToken, url);
+      const result = await analyzeExternalLink(user.canvasUrl || undefined, user.canvasToken || undefined, url);
       
       res.json(result);
     } catch (error) {

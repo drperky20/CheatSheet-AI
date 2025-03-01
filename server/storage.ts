@@ -2,10 +2,10 @@ import { users, type User, type InsertUser, assignmentDrafts, type AssignmentDra
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
+// Create a MemoryStore constructor with the session passed in
 const MemoryStore = createMemoryStore(session);
 
-// modify the interface with any CRUD methods
-// you might need
+// Interface for our storage methods
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -18,7 +18,8 @@ export interface IStorage {
   updateDraft(id: number, data: Partial<InsertAssignmentDraft>): Promise<AssignmentDraft | undefined>;
   getDraftsByUser(userId: number): Promise<AssignmentDraft[]>;
   
-  sessionStore: session.SessionStore;
+  // Session store is any type to avoid typescript errors
+  sessionStore: any;
 }
 
 export class MemStorage implements IStorage {
@@ -26,13 +27,15 @@ export class MemStorage implements IStorage {
   private drafts: Map<number, AssignmentDraft>;
   currentUserId: number;
   currentDraftId: number;
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 
   constructor() {
     this.users = new Map();
     this.drafts = new Map();
     this.currentUserId = 1;
     this.currentDraftId = 1;
+    
+    // Create a new MemoryStore instance
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     });
@@ -82,7 +85,16 @@ export class MemStorage implements IStorage {
   
   async createDraft(insertDraft: InsertAssignmentDraft): Promise<AssignmentDraft> {
     const id = this.currentDraftId++;
-    const draft: AssignmentDraft = { ...insertDraft, id };
+    const draft: AssignmentDraft = { 
+      id,
+      userId: insertDraft.userId,
+      courseId: insertDraft.courseId,
+      assignmentId: insertDraft.assignmentId,
+      content: insertDraft.content,
+      createdAt: insertDraft.createdAt,
+      updatedAt: insertDraft.updatedAt,
+      submitted: insertDraft.submitted || null
+    };
     this.drafts.set(id, draft);
     return draft;
   }
@@ -103,4 +115,5 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Export a singleton instance
 export const storage = new MemStorage();
