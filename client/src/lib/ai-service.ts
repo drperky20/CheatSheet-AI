@@ -13,6 +13,48 @@ interface DraftResult {
   notes?: string;
 }
 
+interface ApiKeyStatus {
+  isSet: boolean;
+  provider: string | null;
+}
+
+export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
+  const response = await fetch('/api/gemini/check-api-key', {
+    method: 'GET',
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Authentication required');
+    }
+    throw new Error('Failed to check API key status');
+  }
+  
+  return response.json();
+}
+
+export async function setGeminiApiKey(apiKey: string): Promise<void> {
+  const response = await fetch('/api/gemini/set-api-key', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      apiKey
+    }),
+    credentials: 'include',
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      throw new Error('Authentication required');
+    }
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to set API key');
+  }
+}
+
 export async function analyzeAssignment(
   assignmentDetails: string,
   externalContent?: string
