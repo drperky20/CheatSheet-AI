@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
@@ -49,13 +49,15 @@ export default function AssignmentDetailPage() {
   const { data: assignment, isLoading } = useQuery({
     queryKey: [`/api/canvas/courses/${courseIdNumber}/assignments/${assignmentIdNumber}`],
     queryFn: () => fetchAssignmentDetails(courseIdNumber, assignmentIdNumber),
-    enabled: !!courseIdNumber && !!assignmentIdNumber,
-    onSuccess: (data) => {
-      if (data.externalLinks && data.externalLinks.length > 0) {
-        setExternalLinkToAnalyze(data.externalLinks[0]);
-      }
-    }
+    enabled: !!courseIdNumber && !!assignmentIdNumber
   });
+
+  // Set external link when assignment data is available
+  useEffect(() => {
+    if (assignment?.externalLinks && assignment.externalLinks.length > 0) {
+      setExternalLinkToAnalyze(assignment.externalLinks[0]);
+    }
+  }, [assignment]);
 
   // AI Analysis mutation
   const analysisMutation = useMutation({
