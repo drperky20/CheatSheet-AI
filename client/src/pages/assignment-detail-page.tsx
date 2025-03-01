@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
@@ -44,6 +44,9 @@ export default function AssignmentDetailPage() {
     details?: string;
   }[]>([]);
   const [externalLinkToAnalyze, setExternalLinkToAnalyze] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileContent, setFileContent] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch assignment details
   const { data: assignment, isLoading } = useQuery({

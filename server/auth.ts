@@ -43,7 +43,7 @@ export function setupAuth(app: Express) {
     saveUninitialized: true, // Changed to true to save new sessions
     store: storage.sessionStore,
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (within 32-bit signed integer limit)
       secure: process.env.NODE_ENV === "production",
       sameSite: 'lax'
     }
