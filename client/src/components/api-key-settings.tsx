@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { checkGeminiApiKey, setGeminiApiKey } from '@/lib/ai-service';
+import { checkGeminiApiKey, setGeminiApiKey, testGeminiApiKey } from '@/lib/ai-service';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, Check, KeyRound, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,27 +77,13 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
   // API key test mutation
   const testApiKeyMutation = useMutation({
     mutationFn: async (apiKey: string) => {
-      // This is a simple test to check if the API key works by making a simple API call
-      try {
-        const response = await fetch('/api/gemini/test-api-key', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ apiKey }),
-          credentials: 'include',
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message || 'Invalid API key');
-        }
-        
-        return true;
-      } catch (error) {
-        console.error('Error testing API key:', error);
-        throw new Error('API key validation failed');
+      const result = await testGeminiApiKey(apiKey);
+      
+      if (!result.success) {
+        throw new Error(result.message || 'API key validation failed');
       }
+      
+      return result;
     },
     onSuccess: () => {
       toast({
@@ -109,7 +95,7 @@ export function ApiKeySettings({ open, onOpenChange }: ApiKeySettingsProps) {
     onError: (error) => {
       toast({
         title: 'Invalid API key',
-        description: error.message || 'Your API key could not be validated.',
+        description: error instanceof Error ? error.message : 'Your API key could not be validated.',
         variant: 'destructive',
       });
     }

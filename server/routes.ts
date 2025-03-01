@@ -214,42 +214,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { apiKey } = schema.parse(req.body);
       
-      // Import necessary OpenAI dependencies
-      const OpenAI = await import('openai');
-      
-      // Create temporary instance with the provided API key
-      const openai = new OpenAI.default({ 
-        baseURL: "https://api.x.ai/v1", 
-        apiKey: apiKey 
-      });
-      
       try {
+        // Create a temporary Gemini client with the provided key
+        const tempGenAI = new GoogleGenerativeAI(apiKey);
+        const model = tempGenAI.getGenerativeModel({ 
+          model: "gemini-1.5-pro",
+          safetySettings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            }
+          ]
+        });
+        
         // Make a simple request to test the API key
         const testPrompt = "Hello, this is a test message to verify that the API key is working.";
         
-        const response = await openai.chat.completions.create({
-          model: "grok-beta",
-          messages: [{ role: "user", content: testPrompt }],
-          max_tokens: 10  // Just request a small response to minimize token usage
-        });
+        const result = await model.generateContent(testPrompt);
+        const response = await result.response;
         
-        if (response && response.choices && response.choices.length > 0) {
+        if (response && response.text()) {
           res.json({ 
             success: true, 
-            message: "API key is valid" 
+            message: "Gemini API key is valid" 
           });
         } else {
           res.status(400).json({
             success: false,
-            message: "Invalid API key or API response"
+            message: "Invalid Gemini API key or unexpected response"
           });
         }
       } catch (err) {
         console.error("Error testing Gemini API key:", err);
-        let errorMessage = "Invalid API key";
+        let errorMessage = "Invalid Gemini API key";
         
         if (err instanceof Error) {
-          errorMessage = `Invalid API key: ${err.message}`;
+          errorMessage = `Invalid Gemini API key: ${err.message}`;
         }
         
         res.status(400).json({ 
