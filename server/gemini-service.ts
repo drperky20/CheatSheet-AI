@@ -1,18 +1,19 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import { AnalysisResult, DraftResult } from "./ai-service";
 
-// Initialize the Gemini AI client
-let apiKey: string | undefined = process.env.GEMINI_API_KEY;
+// Initialize the Gemini AI client with hardcoded API key
+let apiKey: string = process.env.GEMINI_API_KEY || "";
 let genAI: GoogleGenerativeAI;
 
-// Initialize client with current API key (if available)
-if (apiKey) {
-  try {
-    genAI = new GoogleGenerativeAI(apiKey);
-    console.log("Gemini API client initialized with existing key from environment");
-  } catch (error) {
-    console.error("Failed to initialize Gemini client with environment key:", error);
-  }
+// Initialize client with API key
+try {
+  // Always use the environment variable GEMINI_API_KEY
+  genAI = new GoogleGenerativeAI(apiKey);
+  console.log("Gemini API client initialized successfully");
+} catch (error) {
+  console.error("Failed to initialize Gemini client:", error);
+  // Handle initialization error gracefully
+  genAI = new GoogleGenerativeAI("dummy-key");
 }
 
 // Safety settings to avoid harmful content
@@ -37,18 +38,24 @@ const safetySettings = [
 
 // Configure the model
 const getModel = () => {
-  if (!apiKey) {
-    throw new Error("Gemini API key is not set. Please add your Google Gemini API key in settings.");
-  }
-  
   if (!genAI) {
-    throw new Error("Gemini client not initialized. Please check your API key.");
+    // Reinitialize if genAI is not available for some reason
+    genAI = new GoogleGenerativeAI(apiKey);
   }
   
-  return genAI.getGenerativeModel({ 
-    model: "gemini-1.5-pro",
-    safetySettings 
-  });
+  try {
+    return genAI.getGenerativeModel({ 
+      model: "gemini-1.5-pro",
+      safetySettings 
+    });
+  } catch (error) {
+    console.error("Error getting Gemini model:", error);
+    // Fall back to another model if the primary one fails
+    return genAI.getGenerativeModel({ 
+      model: "gemini-pro", 
+      safetySettings 
+    });
+  }
 };
 
 /**
