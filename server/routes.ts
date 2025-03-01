@@ -182,12 +182,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Gemini API Routes
-  app.post("/api/gemini/set-api-key", ensureAuthenticated, (req, res) => {
-    // No longer allow setting API key - always use the developer's key
-    res.json({ 
-      success: true, 
-      message: "API key management is handled by the system"
-    });
+  app.post("/api/gemini/set-api-key", ensureAuthenticated, (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      setGeminiApiKey(apiKey);
+      
+      // Save the API key in the environment for persistence
+      process.env.GEMINI_API_KEY = apiKey;
+      
+      res.json({ success: true, message: "Gemini API key updated successfully" });
+    } catch (error) {
+      next(error);
+    }
   });
   
   app.get("/api/gemini/check-api-key", ensureAuthenticated, (req, res) => {
@@ -198,12 +208,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
-  app.post("/api/gemini/test-api-key", ensureAuthenticated, (req, res) => {
-    // Always return success as we're using the developer's key
-    res.json({ 
-      success: true, 
-      message: "API key is managed by the system" 
-    });
+  app.post("/api/gemini/test-api-key", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      
+      try {
+        // Create a temporary Gemini client with the provided key
+        const tempGenAI = new GoogleGenerativeAI(apiKey);
+        const model = tempGenAI.getGenerativeModel({ 
+          model: "gemini-1.5-pro",
+          safetySettings: [
+            {
+              category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+              threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            }
+          ]
+        });
+        
+        // Make a simple request to test the API key
+        const testPrompt = "Hello, this is a test message to verify that the API key is working.";
+        
+        const result = await model.generateContent(testPrompt);
+        const response = await result.response;
+        
+        if (response && response.text()) {
+          res.json({ 
+            success: true, 
+            message: "Gemini API key is valid" 
+          });
+        } else {
+          res.status(400).json({
+            success: false,
+            message: "Invalid Gemini API key or unexpected response"
+          });
+        }
+      } catch (err) {
+        console.error("Error testing Gemini API key:", err);
+        let errorMessage = "Invalid Gemini API key";
+        
+        if (err instanceof Error) {
+          errorMessage = `Invalid Gemini API key: ${err.message}`;
+        }
+        
+        res.status(400).json({ 
+          success: false, 
+          message: errorMessage
+        });
+      }
+    } catch (error) {
+      next(error);
+    }
   });
   
   app.post("/api/gemini/analyze-assignment", ensureAuthenticated, async (req, res, next) => {
