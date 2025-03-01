@@ -56,7 +56,7 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
+  // ALWAYS serve the app on port 5000 as expected by the Replit workflow
   // this serves both the API and the client
   const port = 5000;
   server.listen({
@@ -64,6 +64,7 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    log(`Server running at http://0.0.0.0:${port}/`);
+    log(`For Replit users: Check the 'Webview' tab to access the application`);
   });
 })();
