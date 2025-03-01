@@ -32,48 +32,17 @@ export async function checkGeminiApiKey(): Promise<ApiKeyStatus> {
 }
 
 export async function testGeminiApiKey(apiKey: string): Promise<ApiKeyTestResult> {
-  const response = await fetch('/api/gemini/test-api-key', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      apiKey
-    }),
-    credentials: 'include',
-  });
-  
-  const result = await response.json();
-  
-  if (!response.ok) {
-    return {
-      success: false,
-      message: result.message || 'Failed to test API key'
-    };
-  }
-  
-  return result;
+  // Simply return success as we're using the developer's key
+  return {
+    success: true,
+    message: "API key is managed by the system"
+  };
 }
 
 export async function setGeminiApiKey(apiKey: string): Promise<void> {
-  const response = await fetch('/api/gemini/set-api-key', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      apiKey
-    }),
-    credentials: 'include',
-  });
-  
-  if (!response.ok) {
-    if (response.status === 401) {
-      throw new Error('Authentication required');
-    }
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to set API key');
-  }
+  // This function no longer actually sets an API key as we're using the developer's key
+  // We'll just return successfully to maintain API compatibility
+  return Promise.resolve();
 }
 
 export async function analyzeAssignment(
