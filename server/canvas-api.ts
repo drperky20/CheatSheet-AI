@@ -338,35 +338,24 @@ export async function getCourseAssignments(
 
 // Helper function to sort assignments by due date, newest first 
 function sortAssignmentsByDueDate(assignments: CanvasAssignment[]): CanvasAssignment[] {
-  return assignments.sort((a, b) => {
-    // First prioritize assignments by status
-    const statusPriority: Record<string, number> = {
-      'active': 0,
-      'overdue': 1, 
-      'upcoming': 2,
-      'completed': 3
-    };
-    
-    const statusDiff = statusPriority[a.status] - statusPriority[b.status];
-    if (statusDiff !== 0) return statusDiff;
-    
-    // Within the same status category, sort by due date
-    // Put assignments without due dates at the end of their category
+  // Make a copy of the array to avoid mutating the original
+  return [...assignments].sort((a, b) => {
+    // First display all assignments regardless of status
+    // Sort by due date (newer assignments first)
     if (!a.dueAt && !b.dueAt) return 0;
-    if (!a.dueAt) return 1;
+    if (!a.dueAt) return 1; // Assignments without due dates at the end
     if (!b.dueAt) return -1;
     
     // Convert dates to timestamps for comparison
     const dateA = new Date(a.dueAt).getTime();
     const dateB = new Date(b.dueAt).getTime();
     
-    // Sort by most recent due date first within status category
-    // (Active and overdue assignments with nearest due dates first)
-    if (a.status === 'active' || a.status === 'overdue') {
-      return dateA - dateB; // Ascending (closest dates first)
-    } else {
-      return dateB - dateA; // Descending (newest first for upcoming and completed)
-    }
+    // Sort newest (closest to current date) first
+    const now = Date.now();
+    const distanceA = Math.abs(dateA - now);
+    const distanceB = Math.abs(dateB - now);
+    
+    return distanceA - distanceB; // Closest to current date first
   });
 }
 
