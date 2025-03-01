@@ -336,10 +336,23 @@ export async function getCourseAssignments(
   }
 }
 
-// Helper function to sort assignments by due date
+// Helper function to sort assignments by due date, newest first 
 function sortAssignmentsByDueDate(assignments: CanvasAssignment[]): CanvasAssignment[] {
   return assignments.sort((a, b) => {
-    // Put assignments without due dates at the end
+    // First prioritize assignments by status
+    const statusPriority: Record<string, number> = {
+      'active': 0,
+      'overdue': 1, 
+      'upcoming': 2,
+      'completed': 3
+    };
+    
+    const statusDiff = statusPriority[a.status] - statusPriority[b.status];
+    if (statusDiff !== 0) return statusDiff;
+    
+    // Within the same status category, sort by due date
+    // Put assignments without due dates at the end of their category
+    if (!a.dueAt && !b.dueAt) return 0;
     if (!a.dueAt) return 1;
     if (!b.dueAt) return -1;
     
@@ -347,9 +360,13 @@ function sortAssignmentsByDueDate(assignments: CanvasAssignment[]): CanvasAssign
     const dateA = new Date(a.dueAt).getTime();
     const dateB = new Date(b.dueAt).getTime();
     
-    // For assignments with due dates, sort by closest due date first
-    // (This places assignments due soon at the top)
-    return dateA - dateB;
+    // Sort by most recent due date first within status category
+    // (Active and overdue assignments with nearest due dates first)
+    if (a.status === 'active' || a.status === 'overdue') {
+      return dateA - dateB; // Ascending (closest dates first)
+    } else {
+      return dateB - dateA; // Descending (newest first for upcoming and completed)
+    }
   });
 }
 

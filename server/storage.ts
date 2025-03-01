@@ -35,9 +35,9 @@ export class MemStorage implements IStorage {
     this.currentUserId = 1;
     this.currentDraftId = 1;
     
-    // Create a new MemoryStore instance
+    // Create a new MemoryStore instance with extended period
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
+      checkPeriod: 30 * 86400000, // prune expired entries every 30 days
     });
   }
 

@@ -40,11 +40,12 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "cheatsheetai-secret-key",
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true to save new sessions
     store: storage.sessionStore,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       secure: process.env.NODE_ENV === "production",
+      sameSite: 'lax'
     }
   };
 
