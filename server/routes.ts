@@ -22,6 +22,14 @@ import {
   enhanceContent
 } from "./ai-service";
 
+// Gemini AI Service
+import {
+  setGeminiApiKey,
+  analyzeAssignmentWithGemini,
+  generateDraftWithGemini,
+  enhanceContentWithGemini
+} from "./gemini-service";
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
@@ -163,6 +171,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { content, instruction } = schema.parse(req.body);
       const enhancedContent = await enhanceContent(content, instruction);
+      
+      res.json({ content: enhancedContent });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  // Gemini API Routes
+  app.post("/api/gemini/set-api-key", ensureAuthenticated, (req, res, next) => {
+    try {
+      const schema = z.object({
+        apiKey: z.string().min(1, "API key cannot be empty")
+      });
+      
+      const { apiKey } = schema.parse(req.body);
+      setGeminiApiKey(apiKey);
+      
+      // Save the API key in the environment for persistence
+      process.env.GEMINI_API_KEY = apiKey;
+      
+      res.json({ success: true, message: "Gemini API key updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/gemini/analyze-assignment", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        assignmentDetails: z.string(),
+        externalContent: z.string().optional()
+      });
+      
+      const { assignmentDetails, externalContent } = schema.parse(req.body);
+      const result = await analyzeAssignmentWithGemini(assignmentDetails, externalContent);
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/gemini/generate-draft", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        analysisResult: z.object({
+          assignmentType: z.string(),
+          topics: z.array(z.string()),
+          requirements: z.array(z.string()),
+          suggestedApproach: z.string(),
+          externalLinks: z.array(z.string()),
+          customPrompt: z.string()
+        }),
+        additionalInstructions: z.string().optional()
+      });
+      
+      const { analysisResult, additionalInstructions } = schema.parse(req.body);
+      const result = await generateDraftWithGemini(analysisResult, additionalInstructions);
+      
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+  app.post("/api/gemini/enhance-content", ensureAuthenticated, async (req, res, next) => {
+    try {
+      const schema = z.object({
+        content: z.string(),
+        instructions: z.string()
+      });
+      
+      const { content, instructions } = schema.parse(req.body);
+      const enhancedContent = await enhanceContentWithGemini(content, instructions);
       
       res.json({ content: enhancedContent });
     } catch (error) {
