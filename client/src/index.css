@@ -1,13 +1,63 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --radius: 0.75rem;
+  }
+
   * {
     @apply border-border;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    overflow-y: overlay;
+  }
+  
+  /* Improve focus styles globally */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+  
+  /* Improved headings */
+  h1 {
+    @apply text-4xl sm:text-5xl font-bold tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl sm:text-4xl font-semibold tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight;
+  }
+  
+  /* Better link styling */
+  a:not([class]) {
+    @apply text-primary underline underline-offset-4 hover:text-primary/80;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-border/50 bg-card p-6 shadow-sm;
+  }
+  
+  .button-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .button-glow::after {
+    @apply absolute inset-0 rounded-md opacity-0 transition-opacity content-[''];
+    box-shadow: 0 0 20px 5px hsla(var(--primary) / 0.5);
+  }
+  
+  .button-glow:hover::after {
+    @apply opacity-100;
   }
 }
