@@ -46,7 +46,7 @@ const getModel = () => {
   }
   
   return genAI.getGenerativeModel({ 
-    model: "gemini-1.5-pro",
+    model: "gemini-2.0-flash-thinking-exp-01-21",
     safetySettings 
   });
 };
@@ -146,9 +146,37 @@ export async function generateDraftWithGemini(
     
     Custom Prompt: ${analysisResult.customPrompt}
     
+    Humanizing Instructions:
+    First, create a base draft that addresses all requirements thoroughly and completely.
+    
+    Then, transform it using one of these personas:
+    
+    1. Middle School Student: Use informal text that attempts to be formal but doesn't quite get there. Include:
+       - Occasional awkward phrasing and simplistic transitions ("Next," "Also," "In conclusion")
+       - Some grammatical errors that a 12-14 year old might make
+       - Enthusiasm about simple concepts ("This was really interesting to learn about!")
+       - References to basic sources like textbooks or Wikipedia
+       - High school level reasoning at best
+    
+    2. College Undergraduate: Write as a typical undergraduate student would:
+       - Somewhat formal but still developing academic voice
+       - Occasional complex terms used slightly incorrectly
+       - Adequate but not exceptional critical analysis
+       - Decent structure with clear introduction and conclusion
+       - Citation of mostly mainstream academic sources
+    
+    3. Working Professional: Write as a 40-year-old with a 9th grade education level:
+       - More mature in tone but still accessible
+       - Straightforward language and clear structure
+       - Practical examples from real-life experience
+       - Avoidance of complex terminology unless explained
+       - Occasional references to workplace applications
+    
+    For this draft, use persona #1 (Middle School Student) unless otherwise specified in additional instructions.
+    
     Create a detailed, well-structured draft that addresses all requirements.
-    The draft should be original, properly formatted, and demonstrate critical thinking.
-    If research or citations are needed, include proper citations.
+    The draft should be original, properly formatted, and demonstrate appropriate thinking for the selected persona.
+    If research or citations are needed, include proper citations in a style matching the persona.
     
     Format your response to be directly usable as an assignment submission.
     `;

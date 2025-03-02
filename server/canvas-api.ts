@@ -148,46 +148,8 @@ function determineCourseStatus(
 // API Functions
 export async function getCourses(canvasUrl: string | undefined, canvasToken: string | undefined): Promise<CanvasCourse[]> {
   try {
-    // Mock data for testing when Canvas credentials aren't available
     if (!canvasUrl || !canvasToken) {
-      return [
-        {
-          id: 1001,
-          name: "CS 101: Introduction to Programming",
-          courseCode: "CS 101",
-          term: "Fall 2023",
-          startDate: "2023-09-01",
-          endDate: "2023-12-15",
-          status: 'active'
-        },
-        {
-          id: 1002,
-          name: "MATH 240: Linear Algebra",
-          courseCode: "MATH 240",
-          term: "Fall 2023",
-          startDate: "2023-09-01",
-          endDate: "2023-12-15",
-          status: 'active'
-        },
-        {
-          id: 1003,
-          name: "ENG 205: Technical Writing",
-          courseCode: "ENG 205",
-          term: "Fall 2023",
-          startDate: "2023-09-01",
-          endDate: "2023-12-15",
-          status: 'active'
-        },
-        {
-          id: 1004,
-          name: "HIST 110: World History",
-          courseCode: "HIST 110",
-          term: "Fall 2023",
-          startDate: "2023-09-01",
-          endDate: "2023-12-15",
-          status: 'upcoming'
-        }
-      ];
+      throw new Error('Canvas URL and token are required for authentication');
     }
     
     const data = await makeCanvasRequest(canvasUrl, canvasToken, '/courses?enrollment_state=active&include[]=term');
@@ -215,72 +177,8 @@ export async function getCourseAssignments(
   courseId: number
 ): Promise<CanvasAssignment[]> {
   try {
-    // Mock data for testing when Canvas credentials aren't available
     if (!canvasUrl || !canvasToken) {
-      const mockAssignments: CanvasAssignment[] = [
-        {
-          id: 2001,
-          name: "Python Functions Assignment",
-          description: "Create a program that implements three different mathematical functions using Python. Include proper documentation and test cases.",
-          dueAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-          pointsPossible: 100,
-          submissionTypes: ["online_text_entry", "online_upload"],
-          courseId: courseId,
-          status: 'active',
-          externalLinks: ["https://docs.google.com/document/d/example1", "https://university.edu/resources/python_guide.pdf"],
-          completed: false
-        },
-        {
-          id: 2002,
-          name: "Algorithm Analysis",
-          description: "Analyze the time and space complexity of the provided sorting algorithms. Include examples and compare their performance.",
-          dueAt: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-          pointsPossible: 75,
-          submissionTypes: ["online_text_entry"],
-          courseId: courseId,
-          status: 'active',
-          completed: false
-        },
-        {
-          id: 2003,
-          name: "Data Structures Quiz",
-          description: "Complete the online quiz about basic data structures: arrays, linked lists, stacks, and queues.",
-          dueAt: new Date().toISOString(),
-          pointsPossible: 50,
-          submissionTypes: ["online_quiz"],
-          courseId: courseId,
-          status: 'active',
-          completed: false
-        },
-        {
-          id: 2004,
-          name: "Introduction to Variables",
-          description: "Write a report explaining different variable types in programming languages and their use cases.",
-          dueAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-          pointsPossible: 60,
-          submissionTypes: ["online_text_entry", "online_upload"],
-          courseId: courseId,
-          status: 'completed',
-          completed: true,
-          submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          graded: true,
-          grade: "92%"
-        },
-        {
-          id: 2005,
-          name: "Object-Oriented Design",
-          description: "Create a class hierarchy for a simple library management system using OOP principles.",
-          dueAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          pointsPossible: 120,
-          submissionTypes: ["online_text_entry", "online_upload"],
-          courseId: courseId,
-          status: 'upcoming',
-          completed: false
-        }
-      ];
-      
-      // Sort assignments by due date (most recent first)
-      return sortAssignmentsByDueDate(mockAssignments);
+      throw new Error('Canvas URL and token are required for authentication');
     }
     
     // Fetch assignments and submissions to determine completion status
@@ -366,16 +264,8 @@ export async function getAssignmentDetails(
   assignmentId: number
 ): Promise<CanvasAssignment> {
   try {
-    // Mock data for testing when Canvas credentials aren't available
     if (!canvasUrl || !canvasToken) {
-      const mockAssignments = await getCourseAssignments(undefined, undefined, courseId);
-      const assignment = mockAssignments.find(a => a.id === assignmentId);
-      
-      if (!assignment) {
-        throw new Error('Assignment not found');
-      }
-      
-      return assignment;
+      throw new Error('Canvas URL and token are required for authentication');
     }
     
     // Fetch both assignment details and submission status
@@ -422,12 +312,8 @@ export async function submitAssignment(
   submission: CanvasSubmission
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // Mock success for testing when Canvas credentials aren't available
     if (!canvasUrl || !canvasToken) {
-      return {
-        success: true,
-        message: 'Assignment submitted successfully (mock)'
-      };
+      throw new Error('Canvas URL and token are required for authentication');
     }
     
     const payload = {
@@ -462,28 +348,20 @@ export async function analyzeExternalLink(
   url: string
 ): Promise<{ content: string; success: boolean }> {
   try {
-    // In a real implementation, this would use the browser-use library
-    // to extract content from external links
-    // For now, we'll simulate successful content extraction
+    if (!canvasUrl || !canvasToken) {
+      throw new Error('Canvas URL and token are required for authentication');
+    }
     
-    // Mock content extraction
-    const mockContent = `
-      This is extracted content from ${url}.
-      
-      The document contains important information about the assignment:
-      
-      1. Implement all required functions following the specifications
-      2. Make sure to include appropriate error handling
-      3. Write comprehensive tests for each function
-      4. Submit both the implementation and test files
-      
-      The grading rubric emphasizes code quality, documentation, and test coverage.
-    `;
+    // Make API request to analyze the external link
+    const response = await makeCanvasRequest(
+      canvasUrl,
+      canvasToken,
+      '/analyze-link',
+      'POST',
+      { url }
+    );
     
-    return {
-      content: mockContent,
-      success: true
-    };
+    return response;
   } catch (error) {
     console.error('Error analyzing external link:', error);
     throw new Error('Failed to analyze external link');
