@@ -125,7 +125,7 @@ export default function AuthPage() {
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="login">
                   <Form {...loginForm}>
                     <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
@@ -184,33 +184,17 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
-                      <div className="space-y-2">
-                        <Button 
-                          type="submit" 
-                          className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
-                          disabled={loginMutation.isPending}
-                        >
-                          {loginMutation.isPending ? "Signing in..." : "Sign In"}
-                        </Button>
-                        <Button 
-                          type="button" 
-                          variant="outline"
-                          className="w-full text-xs"
-                          onClick={() => {
-                            loginForm.setValue("username", "DrPerky");
-                            loginForm.setValue("password", "austin09");
-                            loginForm.setValue("canvasUrl", "baps.instructure.com");
-                            loginForm.setValue("canvasToken", "4732~wuh37m6BJtDDcvM7NhckcfVuE4UvehwVhE4EBRQvUVzHNcCHaWcMB9CND2nCXfaD");
-                            loginForm.handleSubmit(onLoginSubmit)();
-                          }}
-                        >
-                          Dev Sign In
-                        </Button>
-                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                        disabled={loginMutation.isPending}
+                      >
+                        {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                      </Button>
                     </form>
                   </Form>
                 </TabsContent>
-                
+
                 <TabsContent value="register">
                   <Form {...registerForm}>
                     <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
@@ -269,6 +253,20 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      <div className="mb-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            registerForm.setValue("username", "testuser");
+                            registerForm.setValue("password", "password");
+                            registerForm.handleSubmit(onRegisterSubmit)();
+                          }}
+                        >
+                          Dev Sign In
+                        </Button>
+                      </div>
                       <Button 
                         type="submit" 
                         className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
