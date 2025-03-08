@@ -14,12 +14,12 @@ const canvasCourseSchema = z.object({
 const canvasAssignmentSchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string(),
+  description: z.string().nullable().transform(val => val || ''), // Handle null descriptions
   due_at: z.string().nullable(),
-  points_possible: z.number(),
-  submission_types: z.array(z.string()),
+  points_possible: z.number().nullable().transform(val => val || 0), // Handle null points
+  submission_types: z.array(z.string()).optional().transform(val => val || []), // Handle missing submission types
   course_id: z.number(),
-  html_url: z.string(),
+  html_url: z.string().nullable().transform(val => val || ''), // Handle null URLs
   published: z.boolean().optional(),
   workflow_state: z.string().optional(),
 });
@@ -193,92 +193,144 @@ export async function getCourseAssignments(
     
     // Fetch all pages of assignments
     while (hasMore) {
-      console.log(`Fetching assignments page ${page}...`);
-      const pageData = await makeCanvasRequest(
-        canvasUrl, 
-        canvasToken, 
-        `/courses/${courseId}/assignments?page=${page}&per_page=${PER_PAGE}`
-      );
-      
-      const pageAssignments = Array.isArray(pageData) ? pageData : [];
-      console.log(`Received ${pageAssignments.length} assignments on page ${page}`);
-      
-      if (pageAssignments.length === 0) {
-        hasMore = false;
-      } else {
-        allAssignments = [...allAssignments, ...pageAssignments];
+      try {
+        console.log(`Fetching assignments page ${page}...`);
+        const pageData = await makeCanvasRequest(
+          canvasUrl, 
+          canvasToken, 
+          `/courses/${courseId}/assignments?page=${page}&per_page=${PER_PAGE}`
+        );
         
-        // If we received fewer assignments than the page size, we've reached the end
-        if (pageAssignments.length < PER_PAGE) {
+        const pageAssignments = Array.isArray(pageData) ? pageData : [];
+        console.log(`Received ${pageAssignments.length} assignments on page ${page}`);
+        
+        if (pageAssignments.length === 0) {
           hasMore = false;
         } else {
-          page++;
+          allAssignments = [...allAssignments, ...pageAssignments];
+          
+          // If we received fewer assignments than the page size, we've reached the end
+          if (pageAssignments.length < PER_PAGE) {
+            hasMore = false;
+          } else {
+            page++;
+          }
         }
+      } catch (error) {
+        console.error(`Error fetching assignments page ${page}:`, error);
+        hasMore = false; // Stop trying more pages on error
       }
     }
     
+    if (allAssignments.length === 0) {
+      console.log("No assignments found from Canvas API");
+      return []; // Return empty array instead of throwing an error
+    }
+    
     // Fetch submissions to determine completion status
-    const submissionsData = await makeCanvasRequest(
-      canvasUrl, 
-      canvasToken, 
-      `/courses/${courseId}/students/submissions?include[]=assignment`
-    );
+    let submissionsData = [];
+    try {
+      submissionsData = await makeCanvasRequest(
+        canvasUrl, 
+        canvasToken, 
+        `/courses/${courseId}/students/submissions?include[]=assignment`
+      );
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+      // Continue without submission data
+    }
     
     // Only validate the data after all pages have been fetched
     // Filter out any deleted or unpublished assignments
     const validAssignments = allAssignments.filter(assignment => 
       assignment && 
-      assignment.workflow_state !== 'deleted' &&
-      assignment.published !== false
+      (assignment.workflow_state !== 'deleted') &&
+      (assignment.published !== false)
     );
     
-    const validatedData = z.array(canvasAssignmentSchema).parse(validAssignments);
-    console.log(`Total valid assignments: ${validatedData.length}`);
+    console.log(`Filtered ${allAssignments.length} assignments to ${validAssignments.length} valid ones`);
     
-    // Create a map of submission status by assignment ID
-    const submissionMap = new Map();
-    if (Array.isArray(submissionsData)) {
-      submissionsData.forEach(submission => {
-        if (submission && submission.assignment_id) {
-          submissionMap.set(submission.assignment_id, {
-            submitted: !!submission.submitted_at,
-            submittedAt: submission.submitted_at,
-            graded: submission.graded,
-            grade: submission.grade
-          });
-        }
-      });
-    }
-    
-    // Build assignments with completion status
-    const assignments = validatedData.map(assignment => {
-      const externalLinks = extractLinks(assignment.description);
-      const submissionInfo = submissionMap.get(assignment.id) || {};
+    try {
+      // Try parsing with our schema
+      const validatedData = z.array(canvasAssignmentSchema).parse(validAssignments);
+      console.log(`Validated ${validatedData.length} assignments`);
       
-      return {
-        id: assignment.id,
-        name: assignment.name,
-        description: assignment.description,
-        dueAt: assignment.due_at,
-        pointsPossible: assignment.points_possible,
-        submissionTypes: assignment.submission_types,
-        courseId: assignment.course_id,
-        status: determineAssignmentStatus(assignment.due_at),
-        externalLinks: externalLinks.length > 0 ? externalLinks : undefined,
-        completed: !!submissionInfo.submitted,
-        submittedAt: submissionInfo.submittedAt || null,
-        graded: !!submissionInfo.graded,
-        grade: submissionInfo.grade || null
-      };
-    });
-    
-    // Sort assignments by due date using our improved sorting function
-    const sortedAssignments = sortAssignmentsByDueDate(assignments);
-    console.log(`Returning ${sortedAssignments.length} sorted assignments`);
-    return sortedAssignments;
+      // Create a map of submission status by assignment ID
+      const submissionMap = new Map();
+      if (Array.isArray(submissionsData)) {
+        submissionsData.forEach(submission => {
+          if (submission && submission.assignment_id) {
+            submissionMap.set(submission.assignment_id, {
+              submitted: !!submission.submitted_at,
+              submittedAt: submission.submitted_at,
+              graded: submission.graded,
+              grade: submission.grade
+            });
+          }
+        });
+      }
+      
+      // Build assignments with completion status
+      const assignments = validatedData.map(assignment => {
+        let externalLinks: string[] = [];
+        try {
+          externalLinks = extractLinks(assignment.description);
+        } catch (error) {
+          console.error(`Error extracting links for assignment ${assignment.id}:`, error);
+        }
+        
+        const submissionInfo = submissionMap.get(assignment.id) || {};
+        
+        return {
+          id: assignment.id,
+          name: assignment.name,
+          description: assignment.description,
+          dueAt: assignment.due_at,
+          pointsPossible: assignment.points_possible,
+          submissionTypes: assignment.submission_types,
+          courseId: assignment.course_id,
+          status: determineAssignmentStatus(assignment.due_at),
+          externalLinks: externalLinks.length > 0 ? externalLinks : undefined,
+          completed: !!submissionInfo.submitted,
+          submittedAt: submissionInfo.submittedAt || null,
+          graded: !!submissionInfo.graded,
+          grade: submissionInfo.grade || null
+        };
+      });
+      
+      // Sort assignments by due date using our improved sorting function
+      const sortedAssignments = sortAssignmentsByDueDate(assignments);
+      console.log(`Returning ${sortedAssignments.length} sorted assignments`);
+      return sortedAssignments;
+      
+    } catch (validationError) {
+      console.error("Validation error:", validationError);
+      
+      // Fallback: If validation fails, create assignments manually with minimal data
+      console.log("Attempting fallback parsing of assignments...");
+      
+      const fallbackAssignments: CanvasAssignment[] = validAssignments
+        .filter(a => a && a.id && a.name) // Only keep assignments with at least id and name
+        .map(a => ({
+          id: a.id,
+          name: a.name || 'Unnamed Assignment',
+          description: a.description || '',
+          dueAt: a.due_at || null,
+          pointsPossible: typeof a.points_possible === 'number' ? a.points_possible : 0,
+          submissionTypes: Array.isArray(a.submission_types) ? a.submission_types : [],
+          courseId: a.course_id || courseId,
+          status: determineAssignmentStatus(a.due_at || null),
+          externalLinks: a.description ? extractLinks(a.description) : undefined
+        }));
+      
+      // Sort assignments by due date
+      const sortedFallbackAssignments = sortAssignmentsByDueDate(fallbackAssignments);
+      console.log(`Returning ${sortedFallbackAssignments.length} fallback assignments`);
+      return sortedFallbackAssignments;
+    }
   } catch (error) {
     console.error('Error fetching assignments:', error);
-    throw new Error('Failed to fetch assignments from Canvas');
+    return []; // Return empty array on error instead of crashing
   }
 }
 
@@ -323,35 +375,73 @@ export async function getAssignmentDetails(
     }
     
     // Fetch both assignment details and submission status
-    const [assignmentData, submissionData] = await Promise.all([
-      makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/assignments/${assignmentId}`),
-      makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/assignments/${assignmentId}/submissions/self`)
-    ]);
+    let assignmentData, submissionData;
+    try {
+      [assignmentData, submissionData] = await Promise.all([
+        makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/assignments/${assignmentId}`),
+        makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/assignments/${assignmentId}/submissions/self`)
+          .catch(err => {
+            console.log("Error fetching submission data (continuing):", err);
+            return null;
+          })
+      ]);
+    } catch (error) {
+      console.error('Error fetching assignment or submission data:', error);
+      throw new Error('Failed to fetch assignment details from Canvas');
+    }
     
-    const validatedData = canvasAssignmentSchema.parse(assignmentData);
-    const externalLinks = extractLinks(validatedData.description);
-    
-    // Extract submission status if available
-    const completed = submissionData && submissionData.submitted_at ? true : false;
-    const submittedAt = submissionData ? submissionData.submitted_at : null;
-    const graded = submissionData && submissionData.graded ? true : false;
-    const grade = submissionData ? submissionData.grade : null;
-    
-    return {
-      id: validatedData.id,
-      name: validatedData.name,
-      description: validatedData.description,
-      dueAt: validatedData.due_at,
-      pointsPossible: validatedData.points_possible,
-      submissionTypes: validatedData.submission_types,
-      courseId: validatedData.course_id,
-      status: determineAssignmentStatus(validatedData.due_at),
-      externalLinks: externalLinks.length > 0 ? externalLinks : undefined,
-      completed,
-      submittedAt,
-      graded,
-      grade
-    };
+    try {
+      const validatedData = canvasAssignmentSchema.parse(assignmentData);
+      
+      let externalLinks: string[] = [];
+      try {
+        externalLinks = extractLinks(validatedData.description);
+      } catch (error) {
+        console.error('Error extracting links:', error);
+      }
+      
+      // Extract submission status if available
+      const completed = submissionData && submissionData.submitted_at ? true : false;
+      const submittedAt = submissionData ? submissionData.submitted_at : null;
+      const graded = submissionData && submissionData.graded ? true : false;
+      const grade = submissionData ? submissionData.grade : null;
+      
+      return {
+        id: validatedData.id,
+        name: validatedData.name,
+        description: validatedData.description,
+        dueAt: validatedData.due_at,
+        pointsPossible: validatedData.points_possible,
+        submissionTypes: validatedData.submission_types,
+        courseId: validatedData.course_id,
+        status: determineAssignmentStatus(validatedData.due_at),
+        externalLinks: externalLinks.length > 0 ? externalLinks : undefined,
+        completed,
+        submittedAt,
+        graded,
+        grade
+      };
+    } catch (validationError) {
+      console.error('Schema validation error:', validationError);
+      
+      // Fallback if schema validation fails
+      if (!assignmentData || !assignmentData.id || !assignmentData.name) {
+        throw new Error('Invalid assignment data received from Canvas');
+      }
+      
+      // Create a minimal assignment object
+      return {
+        id: assignmentData.id,
+        name: assignmentData.name || 'Unnamed Assignment',
+        description: assignmentData.description || '',
+        dueAt: assignmentData.due_at || null,
+        pointsPossible: typeof assignmentData.points_possible === 'number' ? assignmentData.points_possible : 0,
+        submissionTypes: Array.isArray(assignmentData.submission_types) ? assignmentData.submission_types : [],
+        courseId: assignmentData.course_id || courseId,
+        status: determineAssignmentStatus(assignmentData.due_at || null),
+        externalLinks: assignmentData.description ? extractLinks(assignmentData.description) : undefined
+      };
+    }
   } catch (error) {
     console.error('Error fetching assignment details:', error);
     throw new Error('Failed to fetch assignment details from Canvas');
