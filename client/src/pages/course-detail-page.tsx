@@ -72,7 +72,7 @@ export default function CourseDetailPage() {
           if (!a.dueAt && !b.dueAt) return 0;
           if (!a.dueAt) return 1;
           if (!b.dueAt) return -1;
-          return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+          return new Date(b.dueAt).getTime() - new Date(a.dueAt).getTime(); // Reversed order for newest first
         case 'name':
           return a.name.localeCompare(b.name);
         case 'pointsPossible':
