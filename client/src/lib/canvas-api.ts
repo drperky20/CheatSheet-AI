@@ -40,6 +40,12 @@ export async function fetchCourses(): Promise<CanvasCourse[]> {
   return response.json();
 }
 
+export async function fetchCourseDetails(courseId: number): Promise<CanvasCourse | undefined> {
+  // Fetch all courses and find the specific one by ID
+  const courses = await fetchCourses();
+  return courses.find(course => course.id === courseId);
+}
+
 export async function fetchCourseAssignments(courseId: number): Promise<CanvasAssignment[]> {
   const response = await fetch(`/api/canvas/courses/${courseId}/assignments`);
   if (!response.ok) {
