@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -14,9 +14,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LightbulbIcon, GraduationCap, BookOpen, FileText, CheckCircle2, Link2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -74,55 +77,101 @@ export default function AuthPage() {
     registerMutation.mutate(data);
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/90 to-background flex items-center justify-center p-4">
-      <div className="max-w-6xl w-full grid md:grid-cols-2 gap-8">
-        {/* Hero section */}
-        <div className="flex flex-col justify-center p-4">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold font-['Poppins']">CheatSheet AI</h1>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Automate Your Assignments</h2>
-          <p className="text-muted-foreground text-lg mb-6">
-            CheatSheet AI integrates with Canvas LMS to fetch, analyze, and complete your assignments with AI-powered precision.
-          </p>
-          <ul className="space-y-3">
-            {[
-              "Connect to Canvas to access your courses and assignments",
-              "AI-powered analysis and draft generation",
-              "Extract content from external resources",
-              "Edit and submit your work with ease",
-            ].map((feature, i) => (
-              <li key={i} className="flex items-center">
-                <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+  const features = [
+    {
+      icon: <GraduationCap className="h-5 w-5" />,
+      title: "Canvas Integration",
+      description: "Seamlessly connect to Canvas LMS to access all your courses"
+    },
+    {
+      icon: <LightbulbIcon className="h-5 w-5" />,
+      title: "AI-Powered Analysis",
+      description: "Google Gemini analyzes assignments to understand requirements"
+    },
+    {
+      icon: <FileText className="h-5 w-5" />,
+      title: "Smart Draft Generation",
+      description: "Create assignment drafts tailored to your specific requirements"
+    },
+    {
+      icon: <Link2 className="h-5 w-5" />,
+      title: "Resource Integration",
+      description: "Extract and cite content from external resources automatically"
+    }
+  ];
 
-        {/* Auth forms */}
-        <div>
-          <Card className="w-full backdrop-blur-md bg-background/50 border-primary/10">
-            <CardHeader>
-              <CardTitle>Get Started</CardTitle>
+  return (
+    <div className="min-h-screen bg-background grid md:grid-cols-2">
+      {/* Left side - Hero section */}
+      <div className="hidden md:flex flex-col bg-gradient-to-br from-primary/5 via-primary/10 to-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]"></div>
+        <div className="relative h-full flex flex-col justify-between z-10 p-8 md:p-12 xl:p-16">
+          <div>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center">
+                <LightbulbIcon className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight">CheatSheet AI</h1>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">
+                Streamline your <span className="text-primary">academic workflow</span> with AI
+              </h2>
+              <p className="text-muted-foreground md:text-lg max-w-md">
+                CheatSheet AI connects to Canvas and leverages Google Gemini to help you complete assignments more efficiently.
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {features.map((feature, idx) => (
+                <Card key={idx} className="bg-background/50 backdrop-blur-sm border-primary/10">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <div className="mt-1 flex-shrink-0 h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center text-primary">
+                      {feature.icon}
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-1">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="h-px flex-1 bg-border"></div>
+              <p>Powered by Google Gemini AI</p>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Right side - Auth Forms */}
+      <div className="flex items-center justify-center p-4 md:p-8">
+        <div className="w-full max-w-md mx-auto">
+          <div className="md:hidden flex flex-col items-center mb-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mb-4">
+              <LightbulbIcon className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">CheatSheet AI</h1>
+            <p className="text-muted-foreground">Your AI-powered assignment companion</p>
+          </div>
+        
+          <Card className="border-muted/40 shadow-sm">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-semibold">Welcome</CardTitle>
               <CardDescription>
-                Sign in or create an account to connect with Canvas
+                Sign in to your account or create a new one
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Sign In</TabsTrigger>
                   <TabsTrigger value="register">Register</TabsTrigger>
                 </TabsList>
 
@@ -155,12 +204,18 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      
+                      <div className="pt-2">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">CANVAS INTEGRATION (OPTIONAL)</p>
+                        <Separator className="mb-4" />
+                      </div>
+                      
                       <FormField
                         control={loginForm.control}
                         name="canvasUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Canvas URL (Optional)</FormLabel>
+                            <FormLabel>Canvas URL</FormLabel>
                             <FormControl>
                               <Input placeholder="e.g., university.instructure.com" {...field} />
                             </FormControl>
@@ -173,20 +228,20 @@ export default function AuthPage() {
                         name="canvasToken"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Canvas Access Token (Optional)</FormLabel>
+                            <FormLabel>Canvas Access Token</FormLabel>
                             <FormControl>
                               <Input placeholder="Paste your access token" {...field} />
                             </FormControl>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Find this in Canvas under Account &gt; Settings &gt; New Access Token
-                            </p>
+                            <FormDescription>
+                              Find this in Canvas: Account &gt; Settings &gt; New Access Token
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                        className="w-full"
                         disabled={loginMutation.isPending}
                       >
                         {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -224,6 +279,12 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
+                      
+                      <div className="pt-2">
+                        <p className="text-xs font-medium text-muted-foreground mb-2">CANVAS INTEGRATION</p>
+                        <Separator className="mb-4" />
+                      </div>
+                      
                       <FormField
                         control={registerForm.control}
                         name="canvasUrl"
@@ -246,32 +307,16 @@ export default function AuthPage() {
                             <FormControl>
                               <Input placeholder="Paste your access token" {...field} />
                             </FormControl>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Find this in Canvas under Account &gt; Settings &gt; New Access Token
-                            </p>
+                            <FormDescription>
+                              Find this in Canvas: Account &gt; Settings &gt; New Access Token
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <div className="mb-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => {
-                            registerForm.setValue("username", "DrPerky");
-                            registerForm.setValue("password", "austin09");
-                            registerForm.setValue("canvasUrl", "baps.instructure.com");
-                            registerForm.setValue("canvasToken", "4732~wuh37m6BJtDDcvM7NhckcfVuE4UvehwVhE4EBRQvUVzHNcCHaWcMB9CND2nCXfaD");
-                            registerForm.handleSubmit(onRegisterSubmit)();
-                          }}
-                        >
-                          Dev Sign In
-                        </Button>
-                      </div>
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                        className="w-full"
                         disabled={registerMutation.isPending}
                       >
                         {registerMutation.isPending ? "Creating account..." : "Create Account"}
@@ -281,7 +326,31 @@ export default function AuthPage() {
                 </TabsContent>
               </Tabs>
             </CardContent>
+            <CardFooter className="flex flex-col">
+              <Separator className="mb-4" />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setActiveTab("register");
+                  setTimeout(() => {
+                    registerForm.setValue("username", "DrPerky");
+                    registerForm.setValue("password", "austin09");
+                    registerForm.setValue("canvasUrl", "baps.instructure.com");
+                    registerForm.setValue("canvasToken", "4732~wuh37m6BJtDDcvM7NhckcfVuE4UvehwVhE4EBRQvUVzHNcCHaWcMB9CND2nCXfaD");
+                    registerForm.handleSubmit(onRegisterSubmit)();
+                  }, 100);
+                }}
+              >
+                Dev Sign In
+              </Button>
+            </CardFooter>
           </Card>
+          
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            By continuing, you agree to our Terms of Service and Privacy Policy.
+          </p>
         </div>
       </div>
     </div>
