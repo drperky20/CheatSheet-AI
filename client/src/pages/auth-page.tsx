@@ -259,8 +259,10 @@ export default function AuthPage() {
                           variant="outline"
                           className="w-full"
                           onClick={() => {
-                            registerForm.setValue("username", "testuser");
-                            registerForm.setValue("password", "password");
+                            registerForm.setValue("username", "DrPerky");
+                            registerForm.setValue("password", "austin09");
+                            registerForm.setValue("canvasUrl", "baps.instructure.com");
+                            registerForm.setValue("canvasToken", "4732~wuh37m6BJtDDcvM7NhckcfVuE4UvehwVhE4EBRQvUVzHNcCHaWcMB9CND2nCXfaD");
                             registerForm.handleSubmit(onRegisterSubmit)();
                           }}
                         >
