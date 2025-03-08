@@ -184,13 +184,29 @@ export default function AuthPage() {
                           </FormItem>
                         )}
                       />
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
-                        disabled={loginMutation.isPending}
-                      >
-                        {loginMutation.isPending ? "Signing in..." : "Sign In"}
-                      </Button>
+                      <div className="space-y-2">
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+                          disabled={loginMutation.isPending}
+                        >
+                          {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline"
+                          className="w-full text-xs"
+                          onClick={() => {
+                            loginForm.setValue("username", "DrPerky");
+                            loginForm.setValue("password", "austin09");
+                            loginForm.setValue("canvasUrl", "baps.instructure.com");
+                            loginForm.setValue("canvasToken", "4732~wuh37m6BJtDDcvM7NhckcfVuE4UvehwVhE4EBRQvUVzHNcCHaWcMB9CND2nCXfaD");
+                            loginForm.handleSubmit(onLoginSubmit)();
+                          }}
+                        >
+                          Dev Sign In
+                        </Button>
+                      </div>
                     </form>
                   </Form>
                 </TabsContent>
