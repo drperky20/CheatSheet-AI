@@ -20,6 +20,8 @@ const canvasAssignmentSchema = z.object({
   submission_types: z.array(z.string()),
   course_id: z.number(),
   html_url: z.string(),
+  published: z.boolean().optional(),
+  workflow_state: z.string().optional(),
 });
 
 // Types for our standardized API responses
@@ -181,13 +183,57 @@ export async function getCourseAssignments(
       throw new Error('Canvas URL and token are required for authentication');
     }
     
-    // Fetch assignments and submissions to determine completion status
-    const [assignmentsData, submissionsData] = await Promise.all([
-      makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/assignments`),
-      makeCanvasRequest(canvasUrl, canvasToken, `/courses/${courseId}/students/submissions?include[]=assignment`)
-    ]);
+    // Implement pagination to get all assignments
+    let allAssignments: any[] = [];
+    let page = 1;
+    let hasMore = true;
+    const PER_PAGE = 100; // Maximum allowed by Canvas API
     
-    const validatedData = z.array(canvasAssignmentSchema).parse(assignmentsData);
+    console.log(`Fetching Canvas assignments for course ${courseId}`);
+    
+    // Fetch all pages of assignments
+    while (hasMore) {
+      console.log(`Fetching assignments page ${page}...`);
+      const pageData = await makeCanvasRequest(
+        canvasUrl, 
+        canvasToken, 
+        `/courses/${courseId}/assignments?page=${page}&per_page=${PER_PAGE}`
+      );
+      
+      const pageAssignments = Array.isArray(pageData) ? pageData : [];
+      console.log(`Received ${pageAssignments.length} assignments on page ${page}`);
+      
+      if (pageAssignments.length === 0) {
+        hasMore = false;
+      } else {
+        allAssignments = [...allAssignments, ...pageAssignments];
+        
+        // If we received fewer assignments than the page size, we've reached the end
+        if (pageAssignments.length < PER_PAGE) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      }
+    }
+    
+    // Fetch submissions to determine completion status
+    const submissionsData = await makeCanvasRequest(
+      canvasUrl, 
+      canvasToken, 
+      `/courses/${courseId}/students/submissions?include[]=assignment`
+    );
+    
+    // Only validate the data after all pages have been fetched
+    // Filter out any deleted or unpublished assignments
+    const validAssignments = allAssignments.filter(assignment => 
+      assignment && 
+      assignment.workflow_state !== 'deleted' &&
+      assignment.published !== false
+    );
+    
+    const validatedData = z.array(canvasAssignmentSchema).parse(validAssignments);
+    console.log(`Total valid assignments: ${validatedData.length}`);
     
     // Create a map of submission status by assignment ID
     const submissionMap = new Map();
@@ -226,34 +272,42 @@ export async function getCourseAssignments(
       };
     });
     
-    // Sort assignments by due date
-    return sortAssignmentsByDueDate(assignments);
+    // Sort assignments by due date using our improved sorting function
+    const sortedAssignments = sortAssignmentsByDueDate(assignments);
+    console.log(`Returning ${sortedAssignments.length} sorted assignments`);
+    return sortedAssignments;
   } catch (error) {
     console.error('Error fetching assignments:', error);
     throw new Error('Failed to fetch assignments from Canvas');
   }
 }
 
-// Helper function to sort assignments by due date, newest first 
+// Helper function to sort assignments by due date, based on the reference implementation
 function sortAssignmentsByDueDate(assignments: CanvasAssignment[]): CanvasAssignment[] {
   // Make a copy of the array to avoid mutating the original
   return [...assignments].sort((a, b) => {
-    // First display all assignments regardless of status
-    // Sort by due date (newer assignments first)
+    // First, prioritize assignments by status
+    // Active/upcoming assignments should come first
+    const statusOrder = {
+      'active': 0,
+      'upcoming': 1,
+      'overdue': 2,
+      'completed': 3
+    };
+    
+    const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+    if (statusDiff !== 0) return statusDiff;
+    
+    // For assignments with the same status, sort by due date
     if (!a.dueAt && !b.dueAt) return 0;
     if (!a.dueAt) return 1; // Assignments without due dates at the end
     if (!b.dueAt) return -1;
     
-    // Convert dates to timestamps for comparison
+    // For assignments with due dates, sort by date (earlier due dates first)
     const dateA = new Date(a.dueAt).getTime();
     const dateB = new Date(b.dueAt).getTime();
     
-    // Sort newest (closest to current date) first
-    const now = Date.now();
-    const distanceA = Math.abs(dateA - now);
-    const distanceB = Math.abs(dateB - now);
-    
-    return distanceA - distanceB; // Closest to current date first
+    return dateA - dateB; // Earlier due dates first
   });
 }
 
