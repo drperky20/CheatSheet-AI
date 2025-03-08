@@ -5,36 +5,48 @@
 
 @layer base {
   :root {
-    --radius: 0.75rem;
+    --radius: 1rem;
+    --glass-opacity: 0.5;
+    --glass-blur: 12px;
+    --glow-size: 15px;
+    --transition-slow: 0.5s;
+    --transition-medium: 0.3s;
+    --transition-fast: 0.15s;
   }
 
   * {
     @apply border-border;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: transform var(--transition-medium) cubic-bezier(0.25, 0.75, 0.5, 1.25), 
+                background-color var(--transition-medium) ease, 
+                opacity var(--transition-medium) ease,
+                border-color var(--transition-medium) ease,
+                color var(--transition-medium) ease;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    transition: color 0.2s ease, background-color 0.2s ease;
-    overflow-y: overlay;
+    @apply font-sans antialiased text-foreground;
+    background: linear-gradient(135deg, hsl(220, 50%, 10%), hsl(260, 50%, 6%));
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
   
   /* Improve focus styles globally */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    @apply outline-none ring-2 ring-primary/70 ring-offset-2 ring-offset-background;
   }
   
   /* Improved headings */
   h1 {
-    @apply text-4xl sm:text-5xl font-bold tracking-tight;
+    @apply text-3xl sm:text-4xl font-bold tracking-tight;
   }
   
   h2 {
-    @apply text-3xl sm:text-4xl font-semibold tracking-tight;
+    @apply text-2xl sm:text-3xl font-semibold tracking-tight;
   }
   
   h3 {
-    @apply text-2xl sm:text-3xl font-semibold tracking-tight;
+    @apply text-xl sm:text-2xl font-semibold tracking-tight;
   }
   
   /* Better link styling */
@@ -44,20 +56,89 @@
 }
 
 @layer components {
-  .card {
-    @apply rounded-lg border border-border/50 bg-card p-6 shadow-sm;
+  /* Glass morphism */
+  .glass {
+    @apply bg-black/10 backdrop-blur-md backdrop-saturate-150 border border-white/10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
   
-  .button-glow {
-    @apply relative overflow-hidden;
+  .glass-card {
+    @apply glass rounded-xl;
+    transition: all var(--transition-medium) cubic-bezier(0.25, 0.75, 0.5, 1.25);
   }
   
-  .button-glow::after {
-    @apply absolute inset-0 rounded-md opacity-0 transition-opacity content-[''];
-    box-shadow: 0 0 20px 5px hsla(var(--primary) / 0.5);
+  .glass-card:hover {
+    @apply bg-black/20 border-primary/30;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), 
+                0 0 var(--glow-size) rgba(var(--primary), 0.5);
   }
   
-  .button-glow:hover::after {
-    @apply opacity-100;
+  /* Glowing elements */
+  .glow-text {
+    text-shadow: 0 0 8px hsla(var(--primary), 0.7);
+  }
+  
+  .glow-border {
+    @apply border border-primary/40;
+    box-shadow: 0 0 15px hsla(var(--primary), 0.4),
+                inset 0 0 15px hsla(var(--primary), 0.2);
+  }
+  
+  /* Animations */
+  .fade-in {
+    animation: fadeIn var(--transition-medium) ease forwards;
+  }
+  
+  .slide-up {
+    animation: slideUp var(--transition-medium) cubic-bezier(0.25, 0.75, 0.5, 1.25) forwards;
+  }
+  
+  .pulse {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  
+  /* Hover effects */
+  .hover-scale {
+    transition: transform var(--transition-fast) ease;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-black/20;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/40;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/60;
   }
 }
